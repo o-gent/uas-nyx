@@ -1,0 +1,9 @@
+__pycache__
+*.cpython
+.mypy_cache
+venv
+.idea
+.ipynb_checkpoints
+.vscode
+training
+inspiration
