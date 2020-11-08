@@ -1,14 +1,15 @@
+import logging
 import math
 import os
 import sys
-from typing import List
-import logging
 import time
+from typing import List
 
 import cv2
 import numpy as np
 from numpy.lib.function_base import average
 
+from perspective import four_point_transform
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.02
@@ -149,14 +150,7 @@ def getSquareLengths(approx: List[List[List[int]]]) -> Square:
 
 def isSquare(s: Square) -> bool:
     """ """
-    if SQUARE_MODE == 0:
-        # checks ratio of shortest side to longest side
-        return ((s.lengths[3] - s.lengths[0]) / s.lengths[3]) < 0.1
-    if SQUARE_MODE == 1:
-
-        return True
-    else:
-        raise Exception("incorrect SQUARE_MODE")
+    return ((s.lengths[3] - s.lengths[0]) / s.lengths[3]) < 0.1
 
 
 def filter_contours(contours):
@@ -166,13 +160,10 @@ def filter_contours(contours):
     # filter contours
     for i, contour in enumerate(contours):  # for each of the found contours
         if cv2.contourArea(contour) > MIN_AREA:
-
             approx = approxContour(contour)
-
             if len(approx) == 4:
-                s = getSquareLengths(approx)
-                if isSquare(s):
-                    squareIndexes.append(i)
+                #s = getSquareLengths(approx)
+                squareIndexes.append(i)
     
     return squareIndexes
 
@@ -193,11 +184,14 @@ def find_characters(image):
     for index in squareIndexes:
         hier = hierarchy[0][index]
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
+            target_contour = approxContour(contours[index])
+            cv2.namedWindow("output", cv2.WINDOW_NORMAL)  
+            cv2.imshow('image',img_thresh.resize(960,540))
+            cv2.waitKey(0)
+            
+            # deal with the perspective distortion
+            cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
 
-            targetContour = approxContour(contours[index])
-            targetRect = cv2.minAreaRect(targetContour)
-
-            cropped = cropMinAreaRect(img_thresh, targetRect)
             # TODO shave 10 pixels off from all edges to remove the frame..
             croppedFurther = cropped[10:-10, 10:-10]
 
@@ -225,7 +219,7 @@ def load_model():
 if __name__ == '__main__':
     k_nearest = load_model()
     files = [f for f in os.listdir('./scaled/')]
-    iterations = 100
+    iterations = 1
     
     start = time.time()
 

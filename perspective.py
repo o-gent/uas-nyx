@@ -1,6 +1,5 @@
 """ 
 from https://www.pyimagesearch.com/2014/09/01/build-kick-ass-mobile-document-scanner-just-5-minutes/ 
-Usage: four_point_transform(img, squareCountours.reshape(4,2))
 """
 
 # import the necessary packages
@@ -29,7 +28,7 @@ def order_points(pts):
 	return rect
 
 def four_point_transform(image, pts):
-	""" """
+	""" Usage: new_img = four_point_transform(img, squareCountours.reshape(4,2)) """
 	# obtain a consistent order of the points and unpack them
 	# individually
 	rect = order_points(pts)
