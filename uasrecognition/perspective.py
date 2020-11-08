@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 
 def order_points(pts):
+	""" """
 	# initialzie a list of coordinates that will be ordered
 	# such that the first entry in the list is the top-left,
 	# the second entry is the top-right, the third is the
@@ -28,6 +29,7 @@ def order_points(pts):
 	return rect
 
 def four_point_transform(image, pts):
+	""" """
 	# obtain a consistent order of the points and unpack them
 	# individually
 	rect = order_points(pts)
