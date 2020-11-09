@@ -10,6 +10,7 @@ import numpy as np
 from numpy.lib.function_base import average
 
 from perspective import four_point_transform
+from utils import resizeWithAspectRatio, display
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.02
@@ -115,7 +116,7 @@ def resize(dataContour, img_thresh):
 
 def ocr(img) -> str:
     """ given a cropped binary image of a charachter, return the charachter """
-    npaContours, _npaHierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    npaContours, _npaHierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
     if len(npaContours) > 1:
         raise Exception("should only have one contour here")
@@ -175,27 +176,29 @@ def find_characters(image):
     img = cv2.imread(image)
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
-    _ret, img_thresh = cv2.threshold(imgBlurred, 220, 255, cv2.THRESH_BINARY)
-    contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
     squareIndexes = filter_contours(contours)
 
+    display(img_thresh)
+
+    
     results = []
     for index in squareIndexes:
         hier = hierarchy[0][index]
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
             target_contour = approxContour(contours[index])
-            cv2.namedWindow("output", cv2.WINDOW_NORMAL)  
-            cv2.imshow('image',img_thresh.resize(960,540))
-            cv2.waitKey(0)
             
             # deal with the perspective distortion
             cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
 
             # TODO shave 10 pixels off from all edges to remove the frame..
-            croppedFurther = cropped[10:-10, 10:-10]
+            cropped_further = cropped[10:-10, 10:-10]
 
-            char = ocr(croppedFurther)
+            display(cropped_further)
+
+            char = ocr(cropped_further)
             print(f"{time.time() - start} to process letter {char}")
             results.append(char)
 
