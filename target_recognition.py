@@ -13,11 +13,11 @@ from perspective import four_point_transform
 from utils import resizeWithAspectRatio, display
 
 MIN_AREA = 3000
-EPSILON_MULTIPLY = 0.02
+EPSILON_MULTIPLY = 0.01
 MIN_AREA_OCR = 100
 RESIZED_WIDTH = 30
 RESIZED_HEIGHT = 30
-SQUARE_MODE = 0 # 0 matches with perfect squares, 1 matches with perspective permutations
+SCALE_FACTOR = 5
 
 
 logger = logging.getLogger("ocr")
@@ -154,7 +154,7 @@ def isSquare(s: Square) -> bool:
     return ((s.lengths[3] - s.lengths[0]) / s.lengths[3]) < 0.1
 
 
-def filter_contours(contours):
+def filterContours(contours):
     """ """
     squareIndexes = []
 
@@ -169,19 +169,52 @@ def filter_contours(contours):
     return squareIndexes
 
 
-def find_characters(image):
-    """ return the charachters present in the given image """
+def filterImage(image: np.ndarray) -> np.ndarray:
+    """ 
+    given an image, return an image which shows only white 
+    Uses K means
+    """
 
-    # initial processing of image
-    img = cv2.imread(image)
+    # downsample, and convert
+    height, width = image.shape[:2]
+    img = cv2.resize(image, (round(width / SCALE_FACTOR), round(height / SCALE_FACTOR)), interpolation=cv2.INTER_AREA)
+    img_blurred = cv2.GaussianBlur(img, (5,5), 0)
+    Z = img_blurred.reshape((-1,3))
+    Z = np.float32(Z)
+
+    # it's possible this criteria could be optimised
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    K = 2
+    _ret, label, center=cv2.kmeans(Z,K,None,criteria,1,cv2.KMEANS_RANDOM_CENTERS)
+
+    # convert back into uint8 and make original image
+    center = np.uint8(center)
+    res = center[label.flatten()]
+    res2 = res.reshape((img.shape))
+
+    # convert to black and white
+    imgGray = cv2.cvtColor(res2, cv2.COLOR_BGR2GRAY)
+    _thresh, imgf = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+    return imgf
+
+
+def find_characters(image: np.ndarray):
+    """ return the charachters present in the given image """
+    
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
     _ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
+    
+    #img_thresh = filterImage(image)
+    
+    #display(img_thresh)
+
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
-    squareIndexes = filter_contours(contours)
+    squareIndexes = filterContours(contours)
 
-    display(img_thresh)
+    #display(img_thresh)
 
     
     results = []
@@ -189,14 +222,20 @@ def find_characters(image):
         hier = hierarchy[0][index]
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
             target_contour = approxContour(contours[index])
-            
+
+            # scale the square co-ords back to orignal image size
+
+
             # deal with the perspective distortion
             cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
+
+            display(cropped)
 
             # TODO shave 10 pixels off from all edges to remove the frame..
             cropped_further = cropped[10:-10, 10:-10]
 
-            display(cropped_further)
+            #display(cropped_further)
+
 
             char = ocr(cropped_further)
             print(f"{time.time() - start} to process letter {char}")
@@ -228,6 +267,7 @@ if __name__ == '__main__':
 
     for i in range(iterations):
         for f in files:
-            print(f"found charachters {find_characters('./scaled/' + f)} in image")
+            img = cv2.imread('./scaled/' + f)
+            print(f"found charachters {find_characters(img)} in image")
 
     print(f"average time taken per image {(time.time() - start) / (len(files) * iterations)}")
