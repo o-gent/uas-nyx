@@ -199,23 +199,34 @@ def filterImage(image: np.ndarray) -> np.ndarray:
     return imgf
 
 
+def calculateColour(image) -> List[float]:
+    """ given a target, find the target colour """
+    pixels = np.float32(image.reshape(-1, 3))
+    n_colors = 2
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .1)
+    flags = cv2.KMEANS_RANDOM_CENTERS
+    _, labels, palette = cv2.kmeans(pixels, n_colors, None, criteria, 10, flags)
+    _, counts = np.unique(labels, return_counts=True)
+    dominant = palette[np.argmax(counts)]
+    return dominant.tolist()
+
+
 def find_characters(image: np.ndarray):
     """ return the charachters present in the given image """
     
-    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
     _ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
     
     #img_thresh = filterImage(image)
-    
-    #display(img_thresh)
 
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
     squareIndexes = filterContours(contours)
-
-    #display(img_thresh)
-
+    
+    # for i in squareIndexes:
+    #     cv2.drawContours(image, contours[i], -1, (0, 255, 0), 3)
+    #     display(image)
     
     results = []
     for index in squareIndexes:
@@ -223,23 +234,27 @@ def find_characters(image: np.ndarray):
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
             target_contour = approxContour(contours[index])
 
-            # scale the square co-ords back to orignal image size
-
+            # find the square colour
+            colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
+            colour = calculateColour(colour_cropped)
+            
+            display(colour_cropped)
 
             # deal with the perspective distortion
             cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
 
-            display(cropped)
+            #display(cropped)
 
             # TODO shave 10 pixels off from all edges to remove the frame..
             cropped_further = cropped[10:-10, 10:-10]
 
             #display(cropped_further)
 
-
+            start = time.time()
             char = ocr(cropped_further)
             print(f"{time.time() - start} to process letter {char}")
-            results.append(char)
+
+            results.append([char, colour])
 
     return results
 
