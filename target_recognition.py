@@ -275,14 +275,14 @@ def load_model():
 
 if __name__ == '__main__':
     k_nearest = load_model()
-    files = [f for f in os.listdir('./scaled/')]
+    files = [f for f in os.listdir('./test_images/')]
     iterations = 1
     
     start = time.time()
 
     for i in range(iterations):
         for f in files:
-            img = cv2.imread('./scaled/' + f)
+            img = cv2.imread('./test_images/' + f)
             print(f"found charachters {find_characters(img)} in image")
 
     print(f"average time taken per image {(time.time() - start) / (len(files) * iterations)}")
