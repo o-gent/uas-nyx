@@ -238,7 +238,7 @@ def find_characters(image: np.ndarray):
             colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
             colour = calculateColour(colour_cropped)
             
-            display(colour_cropped)
+            #display(colour_cropped)
 
             # deal with the perspective distortion
             cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))

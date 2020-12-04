@@ -38,3 +38,6 @@ prob = [0,0,0,0,0,0,0,0,0] + prob
 plt.plot(processed_results)
 plt.plot(prob)
 plt.show()
+
+
+
