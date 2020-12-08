@@ -8,3 +8,5 @@ venv
 training
 inspiration
 logs
+.pytest_cache
+Pipfile

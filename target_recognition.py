@@ -7,10 +7,9 @@ from typing import List
 
 import cv2
 import numpy as np
-from numpy.lib.function_base import average
 
 from perspective import four_point_transform
-from utils import resizeWithAspectRatio, display
+from utils import resizeWithAspectRatio, display, drawContours, timer
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01
@@ -114,6 +113,7 @@ def resize(dataContour, img_thresh):
     return npaROIResized
 
 
+@timer("ocr")
 def ocr(img) -> str:
     """ given a cropped binary image of a charachter, return the charachter """
     npaContours, _npaHierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
@@ -154,6 +154,7 @@ def isSquare(s: Square) -> bool:
     return ((s.lengths[3] - s.lengths[0]) / s.lengths[3]) < 0.1
 
 
+@timer("filter contours")
 def filterContours(contours):
     """ """
     squareIndexes = []
@@ -199,6 +200,7 @@ def filterImage(image: np.ndarray) -> np.ndarray:
     return imgf
 
 
+@timer("calculate colour")
 def calculateColour(image) -> List[float]:
     """ given a target, find the target colour """
     pixels = np.float32(image.reshape(-1, 3))
@@ -211,13 +213,14 @@ def calculateColour(image) -> List[float]:
     return dominant.tolist()
 
 
-def find_characters(image: np.ndarray):
+@timer("find charachters")
+def findCharacters(image: np.ndarray):
     """ return the charachters present in the given image """
     
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
     _ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
-    
+
     #img_thresh = filterImage(image)
 
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
@@ -234,25 +237,18 @@ def find_characters(image: np.ndarray):
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
             target_contour = approxContour(contours[index])
 
-            # find the square colour
-            colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
-            colour = calculateColour(colour_cropped)
-            
-            #display(colour_cropped)
-
             # deal with the perspective distortion
             cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
-
-            #display(cropped)
 
             # TODO shave 10 pixels off from all edges to remove the frame..
             cropped_further = cropped[10:-10, 10:-10]
 
-            #display(cropped_further)
-
-            start = time.time()
             char = ocr(cropped_further)
-            print(f"{time.time() - start} to process letter {char}")
+            #char = c.find_character(cropped_further)
+
+            # find the square colour
+            colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
+            colour = calculateColour(colour_cropped)
 
             results.append([char, colour])
 
@@ -274,15 +270,17 @@ def load_model():
 
 
 if __name__ == '__main__':
+    # model_path = r"/mnt/c/Users/olive/Documents/GitHub/image-recognition/inspiration/dnn/train/model.h5"
+    # import inspiration.dnn.classify as c
+    # c.model = c.load_model(model_path)
+
     k_nearest = load_model()
     files = [f for f in os.listdir('./test_images/')]
-    iterations = 1
+    iterations = 100
+    img = cv2.imread('./test_images/' + files[0])
     
     start = time.time()
-
     for i in range(iterations):
-        for f in files:
-            img = cv2.imread('./test_images/' + f)
-            print(f"found charachters {find_characters(img)} in image")
+        print(f"found charachters {findCharacters(img)} in image")
 
     print(f"average time taken per image {(time.time() - start) / (len(files) * iterations)}")

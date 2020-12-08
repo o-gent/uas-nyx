@@ -1,6 +1,14 @@
 import cv2
 import numpy as np
 import os
+import time
+
+
+def drawContours(image, contours):
+    """ """
+    for contour in contours:
+        cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
+    display(image)
 
 
 def resizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
@@ -158,3 +166,15 @@ def noisy(noise_typ,image):
         gauss = gauss.reshape(row,col,ch)        
         noisy = image + image * gauss
         return noisy
+
+
+def timer(name:str):
+    """ eh seems wack but time """
+    def decorate(func):
+        def call(*args, **kwargs):
+            start = time.perf_counter_ns()
+            result = func(*args, **kwargs)
+            print(f"{name} took {time.perf_counter_ns()-start} ns")
+            return result
+        return call
+    return decorate
