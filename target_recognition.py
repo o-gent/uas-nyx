@@ -113,7 +113,6 @@ def resize(dataContour, img_thresh):
     return npaROIResized
 
 
-@timer("ocr")
 def ocr(img) -> str:
     """ given a cropped binary image of a charachter, return the charachter """
     npaContours, _npaHierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
@@ -154,7 +153,6 @@ def isSquare(s: Square) -> bool:
     return ((s.lengths[3] - s.lengths[0]) / s.lengths[3]) < 0.1
 
 
-@timer("filter contours")
 def filterContours(contours):
     """ """
     squareIndexes = []
@@ -200,7 +198,6 @@ def filterImage(image: np.ndarray) -> np.ndarray:
     return imgf
 
 
-@timer("calculate colour")
 def calculateColour(image) -> List[float]:
     """ given a target, find the target colour """
     pixels = np.float32(image.reshape(-1, 3))
@@ -213,7 +210,6 @@ def calculateColour(image) -> List[float]:
     return dominant.tolist()
 
 
-@timer("find charachters")
 def findCharacters(image: np.ndarray):
     """ return the charachters present in the given image """
     
