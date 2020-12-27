@@ -4,6 +4,7 @@ import unittest
 
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 
 import target_recognition
 from utils import display, imageOverlay
@@ -44,6 +45,45 @@ class TestImageRecognition(unittest.TestCase):
         plt.plot(processed_results)
         #plt.plot(prob)
         plt.show()
+    
+
+    def test_parallel_processing(self):
+        import multi
+
+        def take_image(__) -> np.ndarray:
+            """ take an image from the camera and return it """
+            print("image taken")
+            img = cv2.imread("test_images/field.png")
+            return img
+
+
+        def process_image(image) -> list:
+            """ given an image return the colour, position, letter or none """
+            print("image recieved")
+            result = target_recognition.findCharacters(image)
+            if result:
+                # work out position
+                pass
+            
+            return result
+
+        results = []
+        process = multi.WorkerManager(1, process_image)
+        take = multi.Worker(take_image)
+
+        take.send(1)
+        start = time.time()
+        
+        for i in range(100):
+            image = take.recieve()
+            if image is not None:
+                take.send(1)
+                process.add(image)
+            process.churn()
+            results.append(process.get())
+
+        print(time.time() - start)
+
 
 if __name__ == "__main__":
     unittest.main()

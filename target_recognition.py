@@ -18,6 +18,7 @@ RESIZED_WIDTH = 30
 RESIZED_HEIGHT = 30
 SCALE_FACTOR = 5
 
+#cv2.setNumThreads(1)
 
 logger = logging.getLogger("ocr")
 fh = logging.FileHandler(f"logs/ocr_{time.strftime('%Y%m%d-%H%M%S')}.log")
@@ -279,4 +280,4 @@ if __name__ == '__main__':
     for i in range(iterations):
         print(f"found charachters {findCharacters(img)} in image")
 
-    print(f"average time taken per image {(time.time() - start) / (len(files) * iterations)}")
+    print(f"average time taken per image {(time.time() - start) / (iterations)}")
