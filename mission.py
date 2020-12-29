@@ -8,12 +8,18 @@ import time
 import math
 
 
+print("connecting to vehicle")
 vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
+
+time.sleep(10)
+
 HOME = {
     'lat': vehicle.home_location.lat, 
     'lon': vehicle.home_location.lon, 
     'alt': vehicle.home_location.alt
 }
+
+print("connection complete")
 
 
 def goto_cmd(X,Y, altitude):
@@ -70,7 +76,8 @@ def monitor():
 if __name__ == "__main__":
     # assumes SITL
     # an absolute pain but it works..
-    os.system("""powershell.exe "start wsl '/mnt/c/Users/olive/ardupilot/Tools/autotest/sim_vehicle.py -v ArduPlane'" """)
-    time.sleep(5)
+    #os.system("""powershell.exe "start wsl '/mnt/c/Users/olive/ardupilot/Tools/autotest/sim_vehicle.py -v ArduPlane'" """)
+    os.system("start wsl '/mnt/c/Users/olive/ardupilot/Tools/autotest/sim_vehicle.py -v ArduPlane'")
 
     command()
+

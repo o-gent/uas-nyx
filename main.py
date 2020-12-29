@@ -17,6 +17,7 @@ import cv2
 import numpy as np
 
 import target_recognition
+import mission
 
 target_recognition.k_nearest = target_recognition.load_model()
 
@@ -34,23 +35,25 @@ def process_image(image) -> list:
 
 
 def main():
-    start = time.time()
-    #image = take_image()
+    image = take_image()
     result = process_image(image)
-    #print(time.time() - start)
+    print(mission.vehicle.velocity)
 
 
 if __name__ == "__main__":
-    # from multi import RepeatedTimer
-    image = take_image()
-    # rt = RepeatedTimer(1, main)
-    
+    mission.vehicle.arm = True
+    while mission.vehicle.arm == "False":
+        print("waiting for arm..")
+    mission.vehicle.mode = "TAKEOFF"
+
     while True:
         start = time.time()
         
         main()
         
-        sleep_time = 0.1 - (time.time()-start)
+        sleep_time = 0.2 - (time.time()-start)
         print(sleep_time)
-        if sleep_time < 0: print("running behind")
+        if sleep_time < 0: 
+            print("running behind!!")
+            sleep_time = 0
         time.sleep(sleep_time)
