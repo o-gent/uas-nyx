@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import time
+import logging
 
 
 def drawContours(image, contours):
@@ -207,4 +208,22 @@ def set_axes_equal(ax):
     ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+
+def setup_logger(name, level=logging.INFO):
+    """
+    Creates a logger context
+    """
+    logger = logging.getLogger(name)
+    fh = logging.FileHandler(f"logs/{name}_{time.strftime('%Y%m%d-%H%M%S')}.log")
+    fh.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    fh.setFormatter(formatter)
+    logger.addHandler(ch)
+    logger.addHandler(fh)
+
+    return logger
     

@@ -140,6 +140,7 @@ def bomb_plot(history: List[dict]):
     utils.set_axes_equal(ax)
 
     # er this is doesn't make much sense but yeah
+    # https://stackoverflow.com/questions/6063876/matplotlib-colorbar-for-scatter
     ax2 = fig.add_subplot(132)
     ax2.scatter(x,y,c=z, cmap='jet')
     plt.gca().set_aspect('equal', adjustable='box')

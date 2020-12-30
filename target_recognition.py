@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 from perspective import four_point_transform
-from utils import resizeWithAspectRatio, display, drawContours, timer
+from utils import resizeWithAspectRatio, display, drawContours, timer, setup_logger
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01
@@ -19,17 +19,7 @@ RESIZED_HEIGHT = 30
 SCALE_FACTOR = 5
 
 #cv2.setNumThreads(1)
-
-logger = logging.getLogger("ocr")
-fh = logging.FileHandler(f"logs/ocr_{time.strftime('%Y%m%d-%H%M%S')}.log")
-fh.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.WARNING)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-fh.setFormatter(formatter)
-logger.addHandler(ch)
-logger.addHandler(fh)
+logger = setup_logger("ocr")
 
 
 class DataContour:

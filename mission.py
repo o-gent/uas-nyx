@@ -32,6 +32,9 @@ def goto_cmd(X,Y, altitude):
     """
     lat = HOME['lat'] + Y/111111
     lon = HOME['lon'] + X/(111111 * math.cos(math.radians(HOME['lat'])))
+    
+    #dronekit.LocationLocal()?
+    
     return dronekit.Command(0,0,0, dronekit.mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
     dronekit.mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, lon, altitude)
 
