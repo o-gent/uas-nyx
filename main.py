@@ -1,65 +1,30 @@
 """ 
+entry point for the program
 co-ordinate everything
 
-- Image capture
-- Dronekit
-- Image recognition
-- Payload calculations
+The loop format creates some issues, makes it difficut to pass in and out "global" variables
+Could use a class to keep track of these things
+May have to use globals..
 
-track mission state
-idle -> payload drop -> idle -> speed test -> area search -> finish
 """
 
 import functools
-import threading
 import time
 from typing import Callable, Dict
 
-import cv2
-import dronekit
-import numpy as np
-
-import mission
+import camera
+import mission # contains the vehicle variable
 import target_recognition
+import utils
+from state import * # for all the 
+import state # hacky, to use the state_manager as a global
+
 
 target_recognition.k_nearest = target_recognition.load_model()
-state = ""
-
-class States:
-    PRE_FLIGHT_CHECKS = "pre_flight_checks"
-    # etc etc
+logger = utils.setup_logger("main")
 
 
-# to be moved
-def take_image() -> np.ndarray:
-    """ take an image from the camera and return it """
-    img = cv2.imread("test_images/field.png")
-    return img
-
-
-# to be moved
-def process_image(image) -> list:
-    """ given an image return the colour, position, letter or none """
-    result = target_recognition.findCharacters(image)
-    return result
-
-
-def change_state(new_state) -> str:
-    """ 
-    err globals but hey, otherwise would need a class for only this reason 
-    maybe other reasons but probably not, fight me
-    """
-    global state
-    
-    try:
-        state = new_state
-        print(state)
-        return state
-    except:
-        mission.vehicle.simple_goto(mission.vehicle.home_location)
-        raise Exception("that state doesn't exist")
-
-
+# could be moved
 def target_loop(f_py=None, target_time=1.0):
     """
     base code for each state, while loop with a target time per loop
@@ -78,9 +43,9 @@ def target_loop(f_py=None, target_time=1.0):
                 if ended:
                     break
                 sleep_time = target_time - (time.time()-start)
-                print(sleep_time)
+                #print(sleep_time)
                 if sleep_time < 0: 
-                    print("running behind!!")
+                    logger.log(f"{state} running behind!!")
                     sleep_time = 0
                 time.sleep(sleep_time)
             return True
@@ -88,16 +53,26 @@ def target_loop(f_py=None, target_time=1.0):
     return _decorator(f_py) if callable(f_py) else _decorator
 
 
-@target_loop
-def pre_flight_checks():
+def pre_flight_checks() -> bool:
+    """ 
+    user prompt to ensure the vehicle is ready
+    not a loop
+    state changes:
+        - wait_for_arm
+    """
     return True
 
 
 @target_loop
-def wait_for_arm():
+def wait_for_arm() -> bool:
+    """
+    check periodically for vehicle arming, proceed once observed
+    state changes:
+        - take_off_one
+    """
     if mission.vehicle.arm == True:
         mission.vehicle.mode = "TAKEOFF"
-        change_state("wait_for_arm")
+        state.state_manager.change_state(TAKE_OFF_ONE)
         return True
     print("waiting for arm..")
     return False
@@ -105,11 +80,21 @@ def wait_for_arm():
 
 @target_loop
 def take_off_one():
+    """
+    start take-off sequence, proceed once target height reached
+    state changes:
+        - payload_waypoints
+    """
+
     return True
 
 
 def payload_waypoints():
-    """ this one has a single running setup phase """
+    """ 
+    this one has a single running setup phase
+    state changes:
+        - predict_payload_impact
+    """
 
     @target_loop
     def loop():
@@ -134,7 +119,7 @@ def climb_and_glide():
 
 
 @target_loop
-def land_1():
+def land_one():
     return True
 
 
@@ -150,8 +135,8 @@ def take_off_two():
 
 @target_loop(target_time=0.2)
 def speed_trial():
-    image = take_image()
-    result = process_image(image)
+    image = camera.take_image_test()
+    result = target_recognition.findCharacters(image)
     #print(mission.vehicle.velocity)
     if False:
         return True
@@ -164,7 +149,7 @@ def area_search():
 
 
 @target_loop
-def land_2():
+def land_two():
     return True
 
 
@@ -176,27 +161,32 @@ def null():
 # State machine format
 # each stage has its own loop and checks if it should transition to the next stage
 states: Dict[str, Callable] = {
-    'pre_flight_checks': pre_flight_checks,
-    'wait_for_arm': wait_for_arm,
-    'take_off_one': take_off_one,
-    'payload_waypoints': payload_waypoints,
-    'predict_payload_impact': predict_payload_impact,
-    'drop_bomb': drop_bomb,
-    'climb_and_glide': climb_and_glide,
-    'land_1': land_1,
-    'wait_for_clearance': wait_for_clearance,
-    'take_off_two': take_off_two,
-    'speed_trial': speed_trial,
-    'area_search': area_search,
-    'land_2': land_2,
-    'null': null
+    PRE_FLIGHT_CHECKS: pre_flight_checks,
+    WAIT_FOR_ARM: wait_for_arm,
+    TAKE_OFF_ONE: take_off_one,
+    PAYLOAD_WAYPOINTS: payload_waypoints,
+    PREDICT_PAYLOAD_IMPACT: predict_payload_impact,
+    DROP_BOMB: drop_bomb,
+    CLIMB_AND_GLIDE: climb_and_glide,
+    LAND_ONE: land_one,
+    WAIT_FOR_CLEARANCE: wait_for_clearance,
+    TAKE_OFF_TWO: take_off_two,
+    SPEED_TRAIL: speed_trial,
+    AREA_SEARCH: area_search,
+    LAND_TWO: land_two,
+    NULL: null
 }
 
 
 if __name__ == "__main__":
-    state = change_state('speed_trial')
+    state.state_manager.change_state(SPEED_TRAIL)
 
     # run the current state
-    while True:
-        states[state]()
+    try:
+        while True:
+            states[state.state_manager.state]()
+    except:
+        # a bruh moment for sure
+        mission.vehicle.simple_goto(mission.vehicle.home_location)
+        raise Exception("balls")
     
