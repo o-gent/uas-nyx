@@ -2,16 +2,17 @@
 ardupilot mission structure
 you'll need the SITL installed to test this, i'd recommend using WSL 
 """
-import dronekit
+
+import math
 import os
 import time
-import math
+
+import dronekit
 
 
 print("connecting to vehicle")
 vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
 
-time.sleep(10)
 
 HOME = {
     'lat': vehicle.home_location.lat, 

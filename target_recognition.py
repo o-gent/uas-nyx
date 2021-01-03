@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 from perspective import four_point_transform
-from utils import resizeWithAspectRatio, display, drawContours, timer, setup_logger
+from utils import resizeWithAspectRatio, display, drawContours, timer, logger
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01
@@ -19,7 +19,6 @@ RESIZED_HEIGHT = 30
 SCALE_FACTOR = 5
 
 #cv2.setNumThreads(1)
-logger = setup_logger("ocr")
 
 
 class DataContour:
@@ -268,6 +267,6 @@ if __name__ == '__main__':
     
     start = time.time()
     for i in range(iterations):
-        print(f"found charachters {findCharacters(img)} in image")
+        logger.info(f"found charachters {findCharacters(img)} in image")
 
-    print(f"average time taken per image {(time.time() - start) / (iterations)}")
+    logger.info(f"average time taken per image {(time.time() - start) / (iterations)}")

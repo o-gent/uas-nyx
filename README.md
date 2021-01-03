@@ -8,3 +8,4 @@ I could organise things into modules... ideally you'd have an app module with su
 
 - doing this makes it harder to test individual components.. (you can't run the script directly as own module imports don't work)
 
+- but then we could initialise global objects in __init__ which is a bit more pythonic / nice

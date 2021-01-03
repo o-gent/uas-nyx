@@ -1,8 +1,20 @@
-import cv2
-import numpy as np
+import logging
 import os
 import time
-import logging
+
+import cv2
+import numpy as np
+
+# any file that imports utils initialises the logger config, useful for when running single files
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s, [%(levelname)s], %(module)-5s, %(message)s",
+    handlers=[
+        logging.FileHandler(f"logs/log_{time.strftime('%Y%m%d-%H%M%S')}.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("main")
 
 
 def drawContours(image, contours):
@@ -214,16 +226,34 @@ def setup_logger(name, level=logging.INFO):
     """
     Creates a logger context
     """
-    logger = logging.getLogger(name)
-    fh = logging.FileHandler(f"logs/{name}_{time.strftime('%Y%m%d-%H%M%S')}.log")
-    fh.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    fh.setFormatter(formatter)
-    logger.addHandler(ch)
-    logger.addHandler(fh)
+    # logger = logging.getLogger(name)
+    
+    # fh = logging.FileHandler(f"logs/{name}_{time.strftime('%Y%m%d-%H%M%S')}.log")
+    # fh.setLevel(logging.DEBUG)
+    
+    # ch = logging.StreamHandler()
+    # ch.setLevel(level)
+    
+    # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    
+    # ch.setFormatter(formatter)
+    # fh.setFormatter(formatter)
 
-    return logger
+    # logger.addHandler(ch)
+    # logger.addHandler(fh)
+
+    # return logger
+
+    logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+    rootLogger = logging.getLogger(name)
+
+    fileHandler = logging.FileHandler(f"logs/{name}.log")
+    fileHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+
+    return rootLogger
     

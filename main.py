@@ -13,15 +13,14 @@ import time
 from typing import Callable, Dict
 
 import camera
-import mission # contains the vehicle variable
+import mission  # contains the vehicle variable
+import state  # to use the state_manager as a global
 import target_recognition
-import utils
-from state import * # for all the 
-import state # hacky, to use the state_manager as a global
-
+from utils import logger  # to configure logger
+from state import *  # for all the state names
 
 target_recognition.k_nearest = target_recognition.load_model()
-logger = utils.setup_logger("main")
+logger.info("All modules imported and ready, proceeding to main")
 
 
 # could be moved
@@ -45,7 +44,7 @@ def target_loop(f_py=None, target_time=1.0):
                 sleep_time = target_time - (time.time()-start)
                 #print(sleep_time)
                 if sleep_time < 0: 
-                    logger.log(f"{state} running behind!!")
+                    logger.warning(f"{state} running behind!!")
                     sleep_time = 0
                 time.sleep(sleep_time)
             return True
@@ -74,7 +73,7 @@ def wait_for_arm() -> bool:
         mission.vehicle.mode = "TAKEOFF"
         state.state_manager.change_state(TAKE_OFF_ONE)
         return True
-    print("waiting for arm..")
+    logger.info("waiting for arm..")
     return False
 
 
@@ -188,5 +187,6 @@ if __name__ == "__main__":
     except:
         # a bruh moment for sure
         mission.vehicle.simple_goto(mission.vehicle.home_location)
+        logger.critical("main loop crashed, exiting")
         raise Exception("balls")
     

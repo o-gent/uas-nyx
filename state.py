@@ -4,12 +4,10 @@ and manage state in a class cos it turns out you would need more globals than I 
 """
 
 import time
-from typing import Dict
 from dataclasses import dataclass
-from utils import setup_logger
+from typing import Dict
 
-
-logger = setup_logger("state")
+from utils import logger
 
 
 # list out states as statics to prevent spelling errors
@@ -54,6 +52,7 @@ state_time: Dict[str, StateTiming] = {
     LAND_TWO: StateTiming(0)
 }
 
+
 class State:
     """ keep track of timings and state and all that fun stuff """
 
@@ -62,6 +61,7 @@ class State:
         self._state_time = state_time
         self.misson_time = 0
         self._timer = 0 # a timestap to calculate a time delta from
+        logger.info("state object created")
 
     
     def start_timer(self):
@@ -81,7 +81,7 @@ class State:
         err globals but hey, otherwise would need a class for only this reason 
         maybe other reasons but probably not, fight me
         """
-        logger.log(0,f"STATE CHANGE from {self.state} to {new_state}")
+        logger.info(f"STATE CHANGE from {self.state} to {new_state}")
         self.complete_state(new_state)
         self.state = new_state
 
@@ -130,6 +130,8 @@ state_manager = State()
 
 
 if __name__ == "__main__":
+    import utils  # to configure logger
+
     # some tests. it has a bug
     state_manager.change_state(PRE_FLIGHT_CHECKS)
     time.sleep(1) # shouldn't be taken account of
