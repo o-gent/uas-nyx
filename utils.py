@@ -94,8 +94,8 @@ def distort(img, coef):
     example coef: -2.0e-5
     """
     
-    width  = src.shape[1]
-    height = src.shape[0]
+    width  = img.shape[1]
+    height = img.shape[0]
 
     distCoeff = np.zeros((4,1),np.float64)
 
@@ -119,7 +119,7 @@ def distort(img, coef):
     cam[1,1] = 10.        # define focal length y
 
     # here the undistortion will be computed
-    dst = cv2.undistort(src,cam,distCoeff)
+    dst = cv2.undistort(img,cam,distCoeff)
     
     return dst
 

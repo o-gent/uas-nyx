@@ -12,3 +12,6 @@ logs
 Pipfile
 .pylint.d
 terrain
+dataset/sim_dataset
+dataset/raw_dataset
+dataset/logs

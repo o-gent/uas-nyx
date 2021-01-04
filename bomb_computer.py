@@ -10,15 +10,16 @@ TODO:
  - compare to actual data
 """
 
+import math
 from dataclasses import dataclass
 from os import stat
-from typing import Tuple
-import numpy as np
-from numpy import array
-import math
+from typing import List, Tuple
+
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import List
+from numpy import array
+
 import utils
 
 
