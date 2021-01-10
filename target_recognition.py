@@ -241,7 +241,15 @@ def findCharacters(image: np.ndarray):
     
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
-    _ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
+    img_thresh = cv2.adaptiveThreshold(
+        imgBlurred,
+        255,
+        cv2.ADAPTIVE_THRESH_MEAN_C, 
+        cv2.THRESH_BINARY,
+        199,
+        -50
+    )
+    #_ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
 
     #img_thresh = filterImage(image)
 
@@ -265,7 +273,11 @@ def findCharacters(image: np.ndarray):
             # TODO shave 10 pixels off from all edges to remove the frame..
             cropped_further = cropped[10:-10, 10:-10]
 
-            char = ocr(cropped_further)
+            try:
+                char = ocr(cropped_further)
+            except:
+                continue
+            
             #char = c.find_character(cropped_further)
 
             # find the square colour
@@ -297,9 +309,9 @@ if __name__ == '__main__':
     # c.model = c.load_model(model_path)
 
     k_nearest = load_model()
-    files = [f for f in os.listdir('./test_images/')]
+    files = [f for f in os.listdir('./dataset/sim_dataset/')]
     iterations = 100
-    img = cv2.imread('./test_images/' + files[0])
+    img = cv2.imread('./dataset/sim_dataset/' + files[0])
     
     start = time.time()
     for i in range(iterations):
