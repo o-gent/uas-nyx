@@ -69,7 +69,7 @@ class State:
         self._timer = time.time()
 
 
-    def elapsed_mission_time(self):
+    def elapsed_mission_time(self) -> float:
         """  """
         self.misson_time += time.time() - self._timer
         self.start_timer()
@@ -86,7 +86,7 @@ class State:
         self.state = new_state
 
 
-    def complete_state(self, new_state):
+    def complete_state(self, new_state) -> int:
         """ 
         store the time taken to complete the state
         returns the error (how far behind we are)

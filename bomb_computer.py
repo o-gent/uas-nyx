@@ -4,7 +4,8 @@ To calculate the predicted landing point of the bomb
 Currently uses a euler forward method to time integrate the bomb position
 
 TODO:
- - test the speed of prediction
+ - test the speed of prediction ~ 0.011s, fast enough
+ - check time step independance
  - change to use a scipy ODE solver
  - refine constants used
  - compare to actual data
@@ -158,5 +159,8 @@ def bomb_plot(history: List[dict]):
 
 
 if __name__ == "__main__":
+    import time
+    start = time.perf_counter()
     bomb_drop(30,15,2,0, debug=True)
+    print(time.perf_counter()-start)
     bomb_plot(history)

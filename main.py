@@ -78,7 +78,7 @@ def wait_for_arm() -> bool:
 
 
 @target_loop
-def take_off_one():
+def take_off_one() -> bool:
     """
     start take-off sequence, proceed once target height reached
     state changes:
@@ -88,7 +88,7 @@ def take_off_one():
     return True
 
 
-def payload_waypoints():
+def payload_waypoints() -> bool:
     """ 
     this one has a single running setup phase
     state changes:
@@ -103,37 +103,37 @@ def payload_waypoints():
 
 
 @target_loop
-def predict_payload_impact():
+def predict_payload_impact() -> bool:
     return True
 
 
 @target_loop
-def drop_bomb():
+def drop_bomb() -> bool:
     return True
 
 
 @target_loop
-def climb_and_glide():
+def climb_and_glide() -> bool:
     return True
 
 
 @target_loop
-def land_one():
+def land_one() -> bool:
     return True
 
 
 @target_loop
-def wait_for_clearance():
+def wait_for_clearance() -> bool:
     return True
 
 
 @target_loop
-def take_off_two():
+def take_off_two() -> bool:
     return True
 
 
 @target_loop(target_time=0.2)
-def speed_trial():
+def speed_trial() -> bool:
     image = camera.take_image_test()
     result = target_recognition.findCharacters(image)
     #print(mission.vehicle.velocity)
@@ -143,17 +143,17 @@ def speed_trial():
 
 
 @target_loop
-def area_search():
+def area_search() -> bool:
     return True
 
 
 @target_loop
-def land_two():
+def land_two() -> bool:
     return True
 
 
 @target_loop
-def null():
+def null() -> bool:
     return True
         
 
