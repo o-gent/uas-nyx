@@ -5,6 +5,7 @@
 
 See main.py for the entry point into the program
 
+GLaDOS voice https://glados.c-net.org/ 
 
 use 
 ```
