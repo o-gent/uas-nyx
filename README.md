@@ -9,6 +9,7 @@ GLaDOS voice https://glados.c-net.org/
 
 use 
 ```
+# if on linux -> apt-get install python3-opencv
 pip install -r requirements.txt
 ```
 to install the modules used. A decent amount of them are unneccesary for this project but that's what pip freeze does 🤷‍♀️
