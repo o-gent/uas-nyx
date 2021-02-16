@@ -14,6 +14,9 @@ pip install -r requirements.txt
 ```
 to install the modules used. A decent amount of them are unneccesary for this project but that's what pip freeze does 🤷‍♀️
 
+software for gimbal -> https://www.basecamelectronics.com/downloads/8bit/ use version 2.2b2
+
+
 The dataset can be found on the peryton teams.
 The raw source for this dataset is found at https://www.sensefly.com/education/datasets/?dataset=1502
 

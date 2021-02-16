@@ -12,6 +12,7 @@ import functools
 import time
 from typing import Callable, Dict
 
+from bomb_computer import drop_point
 import camera
 import mission  # contains the vehicle variable
 import state  # to use the state_manager as a global
@@ -21,6 +22,9 @@ from state import *  # for all the state names
 
 target_recognition.k_nearest = target_recognition.load_model()
 logger.info("All modules imported and ready, proceeding to main")
+
+
+TARGET_LOCATION = (100,100)
 
 
 # could be moved
@@ -104,6 +108,23 @@ def payload_waypoints() -> bool:
 
 @target_loop
 def predict_payload_impact() -> bool:
+    """ 
+    use a wind speed / direction prediction to predict bomb impact
+    https://ardupilot.org/dev/docs/ekf2-estimation-system.html 
+    """
+    # get the latest position requirement
+    aim_X, aim_Y = drop_point(
+        TARGET_LOCATION,
+        mission.vehicle.location._alt,
+        mission.vehicle.groundspeed,
+        mission.vehicle.wind.wind_speed,
+        mission.vehicle.wind.wind_direction
+        )
+    # check how close we are to this position
+    mission.vehicle.location
+
+    # aim to go to this position
+
     return True
 
 

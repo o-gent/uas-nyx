@@ -9,6 +9,7 @@ TODO:
  - change to use a scipy ODE solver
  - refine constants used
  - compare to actual data
+ - some funky sign stuff going on - it works though
 """
 
 import math
@@ -19,7 +20,7 @@ from typing import List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from numpy import array
+from numpy import array, ndarray
 
 import utils
 
@@ -45,15 +46,15 @@ class Bomb:
     """
     time: float
     # distance
-    S: array
+    S: ndarray
     # velocity
-    V: array
+    V: ndarray
     # acceleration
-    A: array
+    A: ndarray
     # drag
-    D: array
+    D: ndarray
     # wind speed
-    W: array
+    W: ndarray
     
     def __str__(self):
         return f"""
@@ -63,9 +64,30 @@ class Bomb:
         """
         
 
-def bomb_drop(height, speed, wind_speed, wind_bearing, debug=False) -> array:
+def drop_point(
+        target_position: Tuple[float, float],
+        height: float,
+        speed: float,
+        wind_speed: float,
+        wind_bearing: int
+        ) -> Tuple[float, float]:
+    """ 
+    return where we should be when dropping the bomb 
+    RELATIVE TO HOME POINT
+    """
+    bomb = bomb_drop(height, speed, wind_speed, wind_bearing)
+    landing_position: Tuple[float, float] = (bomb.S[0], bomb.S[1]) # X, Y relative to aircraft
+    # calculate drop position
+    X = target_position[0] - landing_position[0] 
+    Y = target_position[1] - landing_position[1]
+    return (X, Y)
+
+
+def bomb_drop(height, speed, wind_speed, wind_bearing, debug=False) -> Bomb:
     """ 
     Predict the X Y co-ordinate of payload impact
+    positive X in direction of aircraft
+
     should probably use https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html
     but i don't want to figure it out... 
 
@@ -76,6 +98,9 @@ def bomb_drop(height, speed, wind_speed, wind_bearing, debug=False) -> array:
 
     returns the X,Y co-ord of bomb impact
     """
+    
+    # wing speed at 0 degrees is towards the aircraft
+    
     wind_x = math.cos(math.radians(wind_bearing)) * wind_speed
     wind_y = math.sin(math.radians(wind_bearing)) * wind_speed
     
@@ -161,6 +186,7 @@ def bomb_plot(history: List[dict]):
 if __name__ == "__main__":
     import time
     start = time.perf_counter()
-    bomb_drop(30,15,2,0, debug=True)
+    bomb_drop(30.0,18.0,2.0,45, debug=True)
     print(time.perf_counter()-start)
     bomb_plot(history)
+    print(drop_point((0.0,0.0),30.0,18.0,2.0,45))

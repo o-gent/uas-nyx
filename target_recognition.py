@@ -241,6 +241,7 @@ def findCharacters(image: np.ndarray):
     
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
+    #imgBlurred = cv2.bilateralFilter(imgGray,9,75,75)
     img_thresh = cv2.adaptiveThreshold(
         imgBlurred,
         255,
@@ -249,6 +250,7 @@ def findCharacters(image: np.ndarray):
         199,
         -50
     )
+    display(img_thresh)
     #_ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
 
     #img_thresh = filterImage(image)
@@ -269,6 +271,10 @@ def findCharacters(image: np.ndarray):
 
             # deal with the perspective distortion
             cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
+            
+            # crop the original image
+            # blur the crop using bilateral filtering
+            # thresh on the crop
 
             # TODO shave 10 pixels off from all edges to remove the frame..
             cropped_further = cropped[10:-10, 10:-10]
