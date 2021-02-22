@@ -250,7 +250,6 @@ def findCharacters(image: np.ndarray):
         199,
         -50
     )
-    display(img_thresh)
     #_ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
 
     #img_thresh = filterImage(image)

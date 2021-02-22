@@ -13,7 +13,7 @@ import dronekit
 print("connecting to vehicle")
 vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
 
-
+TARGET_LOCATION = (100,100)
 HOME = {
     'lat': vehicle.home_location.lat, 
     'lon': vehicle.home_location.lon, 
@@ -54,7 +54,7 @@ def command():
     # get ready
     cmds = vehicle.commands
     cmds.download()
-    cmds.wait_ready()
+    cmds.wait_ready() 
     cmds.clear()
     # list commands
     cmds.add(goto_cmd(100,100,100))

@@ -24,9 +24,6 @@ target_recognition.k_nearest = target_recognition.load_model()
 logger.info("All modules imported and ready, proceeding to main")
 
 
-TARGET_LOCATION = (100,100)
-
-
 # could be moved
 def target_loop(f_py=None, target_time=1.0):
     """
@@ -112,13 +109,14 @@ def predict_payload_impact() -> bool:
     use a wind speed / direction prediction to predict bomb impact
     https://ardupilot.org/dev/docs/ekf2-estimation-system.html 
     """
+    wind_bearing = mission.vehicle.wind.wind_direction - mission.vehicle.heading
     # get the latest position requirement
     aim_X, aim_Y = drop_point(
-        TARGET_LOCATION,
+        mission.TARGET_LOCATION,
         mission.vehicle.location._alt,
         mission.vehicle.groundspeed,
         mission.vehicle.wind.wind_speed,
-        mission.vehicle.wind.wind_direction
+        wind_bearing
         )
     # check how close we are to this position
     mission.vehicle.location
