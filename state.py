@@ -24,7 +24,7 @@ TAKE_OFF_TWO = "take_off_two"
 SPEED_TRAIL = "speed_trial"
 AREA_SEARCH = "area_search"
 LAND_TWO = "land_two"
-NULL = "null"
+END = "end"
 
 
 @dataclass
@@ -128,28 +128,3 @@ class State:
 
 
 state_manager = State()
-
-
-if __name__ == "__main__":
-    import utils  # to configure logger
-
-    # some tests. it has a bug
-    state_manager.change_state(PRE_FLIGHT_CHECKS)
-    time.sleep(1) # shouldn't be taken account of
-    state_manager.change_state(WAIT_FOR_ARM)
-    state_manager.change_state(TAKE_OFF_ONE)
-    state_manager.change_state(PAYLOAD_WAYPOINTS)
-    state_manager.change_state(PREDICT_PAYLOAD_IMPACT)
-    state_manager.change_state(DROP_BOMB)
-    state_manager.change_state(CLIMB_AND_GLIDE)
-    time.sleep(2)
-    state_manager.change_state(LAND_ONE)
-    state_manager.change_state(WAIT_FOR_CLEARANCE)
-    time.sleep(1) # this one shouldn't be taken account of
-    state_manager.change_state(TAKE_OFF_TWO)
-    state_manager.change_state(SPEED_TRAIL)
-    time.sleep(3)
-    state_manager.change_state(AREA_SEARCH)
-    state_manager.change_state(LAND_TWO)
-    state_manager.change_state(NULL)
-

@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
+from numpy.lib.npyio import load
 
 from utils import resizeWithAspectRatio, display, drawContours, timer, logger
 
@@ -343,7 +344,11 @@ def findCharacters(image: np.ndarray):
             colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
             colour = calculateColour(colour_cropped)
 
-            results.append([char, colour, centre])
+            results.append({
+                "charachter":char, 
+                "colour":colour, 
+                "centre":centre
+                })
 
     if len(results) == 0:
         logger.info("nothing found")
@@ -382,6 +387,7 @@ def load_model():
 
 
 if __name__ == '__main__':
+    k_nearest = load_model()
     import test_all
     test_all.test_image_recognition_speed()
     test_all.test_image_recognition_accuracy()

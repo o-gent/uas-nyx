@@ -9,6 +9,7 @@ May have to use globals..
 """
 
 import functools
+from os import stat
 import time
 from typing import Callable, Dict
 
@@ -60,6 +61,15 @@ def pre_flight_checks() -> bool:
     state changes:
         - wait_for_arm
     """
+    # make dronekit is working correctly
+
+    # ensure we have GPS lock
+
+    # check if values make sense, level at 0 altitude etc
+
+    # then do control surface checks
+
+    state.state_manager.change_state(WAIT_FOR_ARM)
     return True
 
 
@@ -85,7 +95,7 @@ def take_off_one() -> bool:
     state changes:
         - payload_waypoints
     """
-
+    state.state_manager.change_state(PAYLOAD_WAYPOINTS)
     return True
 
 
@@ -98,8 +108,12 @@ def payload_waypoints() -> bool:
 
     @target_loop
     def loop():
-        return True
-
+        if mission.is_position_reached((0,0), 100):
+            return True
+        return False
+    
+    loop()
+    state.state_manager.change_state(PREDICT_PAYLOAD_IMPACT)
     return True
 
 
@@ -119,62 +133,95 @@ def predict_payload_impact() -> bool:
         wind_bearing
         )
     # check how close we are to this position
-    mission.vehicle.location
-
+    
+    if mission.is_position_reached((0,0), 2):
+        state.state_manager.change_state(DROP_BOMB)
+        return True
     # aim to go to this position
+    return False
 
-    return True
 
-
-@target_loop
 def drop_bomb() -> bool:
+    state.state_manager.change_state(CLIMB_AND_GLIDE)
     return True
 
 
 @target_loop
 def climb_and_glide() -> bool:
+    state.state_manager.change_state(LAND_ONE)
     return True
 
 
 @target_loop
 def land_one() -> bool:
+    state.state_manager.change_state(WAIT_FOR_CLEARANCE)
     return True
 
 
 @target_loop
 def wait_for_clearance() -> bool:
+    state.state_manager.change_state(TAKE_OFF_TWO)
     return True
 
 
 @target_loop
 def take_off_two() -> bool:
+    state.state_manager.change_state(SPEED_TRAIL)
     return True
 
 
-@target_loop(target_time=0.2)
 def speed_trial() -> bool:
-    image = camera.take_image_test()
-    result = target_recognition.findCharacters(image)
-    #print(mission.vehicle.velocity)
-    if False:
-        return True
-    return False
+    # set up speed trail waypoints and start waypoints
+
+    results = []
+
+    @target_loop(target_time=0.2)
+    def loop() -> bool:
+        image = next(camera.take_image_test())
+        result = target_recognition.findCharacters(image)
+        if len(result) == 1:
+            # figure out the image position
+            target_position = target_recognition.triangulate(
+                (mission.vehicle.location.local_frame.north, mission.vehicle.location.local_frame.east),
+                result["centre"],
+                mission.vehicle.location.local_frame.down,
+                mission.vehicle.heading
+            )
+            results.append([target_position, result])
+            logger.info(f"{target_position}, {result['charachter']}, {result['colour']}")
+        
+        if mission.is_position_reached((0,0), 5):
+            return True
+
+        if len(results) >= 3:
+            # found all targets
+            return True
+        
+        return False
+    
+    loop()
+    state.state_manager.change_state(AREA_SEARCH)
+    return True
 
 
 @target_loop
 def area_search() -> bool:
+    state.state_manager.change_state(LAND_TWO)
     return True
 
 
 @target_loop
 def land_two() -> bool:
+    state.state_manager.change_state(END)
     return True
 
 
 @target_loop
-def null() -> bool:
+def end() -> bool:
+    mission.vehicle.armed = False
+    mission.vehicle.close()
     return True
-        
+
 
 # State machine format
 # each stage has its own loop and checks if it should transition to the next stage
@@ -192,13 +239,11 @@ states: Dict[str, Callable] = {
     SPEED_TRAIL: speed_trial,
     AREA_SEARCH: area_search,
     LAND_TWO: land_two,
-    NULL: null
+    END: end
 }
 
 
 if __name__ == "__main__":
-    state.state_manager.change_state(SPEED_TRAIL)
-
     # run the current state
     try:
         while True:

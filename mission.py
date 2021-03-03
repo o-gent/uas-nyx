@@ -67,13 +67,8 @@ def takeoff():
     pass
 
 
-def monitor():
-    """ 
-    mission command
-    watches for arming before starting the mission
-    needs to check each stage is complete
-    """
-
+def is_position_reached(target_position, tolerance) -> bool:
+    """ given a position, have we reached it """
     pass
 
 
