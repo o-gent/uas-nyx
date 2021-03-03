@@ -38,6 +38,7 @@ class StateTiming:
 
 # state timing
 # expected amount of time, time started (blank), time taken (blank)
+# if the state isn't in this list then we aren't interested in timing it
 state_time: Dict[str, StateTiming] = {
     TAKE_OFF_ONE: StateTiming(0),
     PAYLOAD_WAYPOINTS: StateTiming(0),
@@ -82,11 +83,11 @@ class State:
         maybe other reasons but probably not, fight me
         """
         logger.info(f"STATE CHANGE from {self.state} to {new_state}")
-        self.complete_state(new_state)
+        self._complete_state(new_state)
         self.state = new_state
 
 
-    def complete_state(self, new_state) -> int:
+    def _complete_state(self, new_state) -> int:
         """ 
         store the time taken to complete the state
         returns the error (how far behind we are)

@@ -3,7 +3,7 @@ import math
 import os
 import sys
 import time
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -16,6 +16,9 @@ MIN_AREA_OCR = 100
 RESIZED_WIDTH = 30
 RESIZED_HEIGHT = 30
 SCALE_FACTOR = 5
+
+RESOLUTION = np.array([3840, 2880]) # px
+FOV = math.radians(100)
 
 #cv2.setNumThreads(1)
 
@@ -41,6 +44,47 @@ class Square:
     y1,y2,y3,y4 = 0,0,0,0
     len12, len23, len34, len41 = 0,0,0,0
     lengths: List[int] = []
+
+
+def triangulate(position: Tuple[float, float], target_uv: Tuple[int, int], altitude: float, heading: float):
+    """
+    Returns absolute coordinates of target in metres
+
+    camera : float[]
+        (x,y) GPS location of the camera in metres
+    target : float[]
+        (x,y) GPS location of the target in metres
+    resolution : float[]
+        (x,y) array of image resolution
+    target_uv : float[]
+        (x,y) pixel position of centre of target
+    altitude : float
+        Altitude in metres
+    FOV : float
+        Horizontal field of view in degrees
+    heading : float
+        Aircraft bearing in degrees
+    """
+    position = np.array(position)           # Camera GPS (m)
+    uv = np.array(target_uv)                # Target pixel location (px) 
+    bearing = math.radians(heading)         # Bearing (rad)
+    h = altitude                            # Altitude (m)
+
+    # Bearing rotation matrix
+    R = np.array([
+        [math.cos(bearing), -math.sin(bearing)], 
+        [math.sin(bearing), math.cos(bearing)]
+        ])
+    # Uses trig to calculate the displacement from aircraft to target. 
+    # Assumes no distortion and that FOV is proportional to resolution. 
+    Delta = np.array([2 * ((uv[0]/RESOLUTION[0]) - 0.5) * h * math.tan(FOV/2), 2 * ((uv[1]/RESOLUTION[1]) - 0.5) * h * math.tan((RESOLUTION[1]/RESOLUTION[0]) * FOV/2)])
+    # Aligns Delta to aircraft bearing. 
+    Delta = np.matmul(Delta, R)
+    
+    # Adds Delta to current aircraft location. 
+    target_gps = position + Delta
+
+    return tuple(target_gps)
 
 
 def order_points(pts):
@@ -154,7 +198,10 @@ def ocr(img) -> str:
 
 
 def getSquareLengths(approx: List[List[List[int]]]) -> Square:
-    """ extract lengths from the co-ordinates """
+    """ 
+    UNUSED
+    extract lengths from the co-ordinates 
+    """
     
     s = Square()
     
@@ -175,7 +222,7 @@ def getSquareLengths(approx: List[List[List[int]]]) -> Square:
 
 
 def isSquare(s: Square) -> bool:
-    """ """
+    """ UNUSED """
     return ((s.lengths[3] - s.lengths[0]) / s.lengths[3]) < 0.1
 
 
@@ -224,6 +271,13 @@ def filterImage(image: np.ndarray) -> np.ndarray:
     return imgf
 
 
+def target_centre(contour: list) -> Tuple[float, float]:
+    """ given the square corners, return the centre of the square """
+    x = sum([item[0] for item in contour])/4
+    y = sum([item[1] for item in contour])/4
+    return int(x), int(y)
+
+
 def calculateColour(image) -> List[float]:
     """ given a target, find the target colour """
     pixels = np.float32(image.reshape(-1, 3))
@@ -240,8 +294,9 @@ def findCharacters(image: np.ndarray):
     """ return the charachters present in the given image """
     
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
-    #imgBlurred = cv2.bilateralFilter(imgGray,9,75,75)
+    imgBlurred = cv2.GaussianBlur(imgGray, (7, 7), 0)
+    #imgBlurred = cv2.bilateralFilter(imgGray,20,75,75)
+    
     img_thresh = cv2.adaptiveThreshold(
         imgBlurred,
         255,
@@ -250,6 +305,7 @@ def findCharacters(image: np.ndarray):
         199,
         -50
     )
+
     #_ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
 
     #img_thresh = filterImage(image)
@@ -258,40 +314,57 @@ def findCharacters(image: np.ndarray):
 
     squareIndexes = filterContours(contours)
     
-    # for i in squareIndexes:
-    #     cv2.drawContours(image, contours[i], -1, (0, 255, 0), 3)
-    #     display(image)
-    
     results = []
     for index in squareIndexes:
         hier = hierarchy[0][index]
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
             target_contour = approxContour(contours[index])
 
-            # deal with the perspective distortion
-            cropped = four_point_transform(img_thresh, target_contour.reshape(4,2))
-            
-            # crop the original image
-            # blur the crop using bilateral filtering
-            # thresh on the crop
+            reshaped = target_contour.reshape(4,2)
+            # get the centre of the target, then position
+            centre = target_centre(reshaped)
 
+            # deal with the perspective distortion
+            cropped = four_point_transform(imgGray, reshaped)
+            img_blurred = cv2.bilateralFilter(cropped, 20,75,75)
+            
             # TODO shave 10 pixels off from all edges to remove the frame..
             cropped_further = cropped[10:-10, 10:-10]
+            #display(cropped_further)
 
             try:
                 char = ocr(cropped_further)
             except:
-                continue
-            
-            #char = c.find_character(cropped_further)
+                logger.info("charachter not found in square")
+                char = ""
+                pass
 
             # find the square colour
             colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
             colour = calculateColour(colour_cropped)
 
-            results.append([char, colour])
+            results.append([char, colour, centre])
+
+    if len(results) == 0:
+        logger.info("nothing found")
 
     return results
+
+
+def no_char_recognition(image):
+    """ for performance testing """
+    imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    imgBlurred = cv2.GaussianBlur(imgGray, (7, 7), 0)
+    img_thresh = cv2.adaptiveThreshold(
+        imgBlurred,
+        255,
+        cv2.ADAPTIVE_THRESH_MEAN_C, 
+        cv2.THRESH_BINARY,
+        199,
+        -50
+    )
+    contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    squareIndexes = filterContours(contours)
 
 
 def load_model():
@@ -309,17 +382,6 @@ def load_model():
 
 
 if __name__ == '__main__':
-    # model_path = r"/mnt/c/Users/olive/Documents/GitHub/image-recognition/inspiration/dnn/train/model.h5"
-    # import inspiration.dnn.classify as c
-    # c.model = c.load_model(model_path)
-
-    k_nearest = load_model()
-    files = [f for f in os.listdir('./dataset/sim_dataset/')]
-    iterations = 100
-    img = cv2.imread('./dataset/sim_dataset/' + files[0])
-    
-    start = time.time()
-    for i in range(iterations):
-        logger.info(f"found charachters {findCharacters(img)} in image")
-
-    logger.info(f"average time taken per image {(time.time() - start) / (iterations)}")
+    import test_all
+    test_all.test_image_recognition_speed()
+    test_all.test_image_recognition_accuracy()
