@@ -14,9 +14,6 @@ def test_image_recognition_accuracy():
     """ test against the dataset """
     
     import target_recognition
-    
-    k_nearest = target_recognition.load_model()
-    target_recognition.k_nearest = k_nearest
 
     files = [f for f in os.listdir('./dataset/sim_dataset/')]
 
@@ -40,8 +37,6 @@ def test_image_recognition_accuracy():
 
 def test_image_recognition_speed():
     import target_recognition
-    k_nearest = target_recognition.load_model()
-    target_recognition.k_nearest = k_nearest
 
     files = [f for f in os.listdir('./dataset/sim_dataset/')]
     iterations = 100

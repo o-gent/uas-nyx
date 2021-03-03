@@ -386,8 +386,5 @@ def load_model():
     return k_nearest
 
 
-if __name__ == '__main__':
-    k_nearest = load_model()
-    import test_all
-    test_all.test_image_recognition_speed()
-    test_all.test_image_recognition_accuracy()
+k_nearest = load_model()
+
