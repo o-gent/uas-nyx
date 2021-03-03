@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from typing import Dict
 
-from utils import logger
+from erebus.utils import logger
 
 
 # list out states as statics to prevent spelling errors

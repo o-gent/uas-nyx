@@ -13,7 +13,7 @@ def test_one():
 def test_image_recognition_accuracy():
     """ test against the dataset """
     
-    import target_recognition
+    from erebus import target_recognition
 
     files = [f for f in os.listdir('./dataset/sim_dataset/')]
 
@@ -25,7 +25,7 @@ def test_image_recognition_accuracy():
         results.append(result)
     
     def check(x) -> list:
-        try: return x[0]
+        try: return x[0]['charachter']
         except: return []
 
     score = sum([1 if 'T' in check(i) else 0 for i in results])/len(results)
@@ -36,7 +36,7 @@ def test_image_recognition_accuracy():
 
 
 def test_image_recognition_speed():
-    import target_recognition
+    from erebus import target_recognition
 
     files = [f for f in os.listdir('./dataset/sim_dataset/')]
     iterations = 100
@@ -54,7 +54,7 @@ def test_image_recognition_speed():
 def test_triangulate():
     """ """
 
-    import target_recognition
+    from erebus import target_recognition
 
     position = (0,0)
     target_px = (1920,1440)
@@ -75,7 +75,7 @@ def test_triangulate():
 
 def test_state():
     """ """
-    import state
+    from erebus import state
 
     state.state_manager.change_state(state.PRE_FLIGHT_CHECKS)
     
@@ -102,7 +102,7 @@ def test_state():
     
     state.state_manager.change_state(state.AREA_SEARCH)
     state.state_manager.change_state(state.LAND_TWO)
-    state.state_manager.change_state(state.NULL)
+    state.state_manager.change_state(state.END)
 
     assert(int(state.state_manager.elapsed_mission_time()) == 5)
     assert(int(state.state_time[state.CLIMB_AND_GLIDE].taken) == 2)
