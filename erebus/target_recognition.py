@@ -14,8 +14,8 @@ from erebus.utils import resizeWithAspectRatio, display, drawContours, timer, lo
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01
 MIN_AREA_OCR = 100
-RESIZED_WIDTH = 30
-RESIZED_HEIGHT = 30
+RESIZED_WIDTH = 50
+RESIZED_HEIGHT = 50
 SCALE_FACTOR = 5
 
 RESOLUTION = np.array([3840, 2880]) # px
@@ -375,8 +375,8 @@ def no_char_recognition(image):
 def load_model():
     """ load data sources and train model """
     try:
-        npaClassifications = np.loadtxt('recognition_train/classifications.txt', np.float32)
-        npaFlattenedImages = np.loadtxt('recognition_train/imageData.txt', np.float32)
+        npaClassifications = np.loadtxt('recognition_train/classifications2.txt', np.float32)
+        npaFlattenedImages = np.loadtxt('recognition_train/imageData2.txt', np.float32)
     except:
         sys.exit('text files not present')
 

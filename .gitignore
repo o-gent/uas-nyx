@@ -5,7 +5,7 @@ venv
 .idea
 .ipynb_checkpoints
 .vscode
-training
+recognition_train/training
 inspiration
 logs
 .pytest_cache
@@ -17,3 +17,5 @@ dataset/raw_dataset
 dataset/logs
 dronekit
 pymavlink
+dataset/letter_set/*
+dataset/LOWER.zip
