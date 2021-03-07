@@ -15,7 +15,6 @@ terrain
 dataset/sim_dataset
 dataset/raw_dataset
 dataset/logs
-dronekit
 pymavlink
 dataset/letter_set/*
 dataset/LOWER.zip

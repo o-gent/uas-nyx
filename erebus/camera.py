@@ -2,6 +2,7 @@
 not expecting this to be large
 """
 
+from typing import Generator
 import cv2
 import numpy as np
 import os
@@ -21,7 +22,7 @@ def take_image():
     pass
 
 
-def take_image_test() -> np.ndarray:
+def take_image_test() -> Generator[np.ndarray, None, None]:
     """
     just return an image from file
     will be slower than the real thing as having to load from disk
