@@ -5,7 +5,6 @@ venv
 .idea
 .ipynb_checkpoints
 .vscode
-recognition_train/training
 inspiration
 logs
 .pytest_cache

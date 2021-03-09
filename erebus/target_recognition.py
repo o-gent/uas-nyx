@@ -10,33 +10,16 @@ import numpy as np
 from numpy.lib.npyio import load
 
 from erebus.utils import resizeWithAspectRatio, display, drawContours, timer, logger
+from erebus.k_nearest_recognition.ocr import ocr_k_nearest
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01
-MIN_AREA_OCR = 100
-RESIZED_WIDTH = 50
-RESIZED_HEIGHT = 50
 SCALE_FACTOR = 5
 
 RESOLUTION = np.array([3840, 2880]) # px
 FOV = math.radians(100)
 
 #cv2.setNumThreads(1)
-
-
-class DataContour:
-    """ """
-    intX = 0  # bounding rect top left corner x location
-    intY = 0  # bounding rect top left corner y location
-    intWidth = 0  # bounding rect width
-    intHeight = 0  # bounding rect height
-    floatArea = 0.0  # area of contour
-
-    def checkIfContourIsValid(self):
-        """ should have more conditions """
-        if self.floatArea < MIN_AREA_OCR:
-            return False
-        return True
 
 
 class Square:
@@ -47,7 +30,7 @@ class Square:
     lengths: List[int] = []
 
 
-def triangulate(position: Tuple[float, float], target_uv: Tuple[int, int], altitude: float, heading: float):
+def triangulate(position_input: Tuple[float, float], target_uv: Tuple[int, int], altitude: float, heading: float):
     """
     Returns absolute coordinates of target in metres
 
@@ -66,7 +49,7 @@ def triangulate(position: Tuple[float, float], target_uv: Tuple[int, int], altit
     heading : float
         Aircraft bearing in degrees
     """
-    position = np.array(position)           # Camera GPS (m)
+    position = np.array(position_input)           # Camera GPS (m)
     uv = np.array(target_uv)                # Target pixel location (px) 
     bearing = math.radians(heading)         # Bearing (rad)
     h = altitude                            # Altitude (m)
@@ -161,41 +144,9 @@ def approxContour(contour):
     return approx
 
 
-def getRectangle(npaContour) -> DataContour:
-    """ given contours, calculate rectangle information """
-    dataContour = DataContour()
-    dataContour.intX, dataContour.intY, dataContour.intWidth, dataContour.intHeight = cv2.boundingRect(npaContour)
-    dataContour.floatArea = cv2.contourArea(npaContour)
-    if dataContour.checkIfContourIsValid():
-        return dataContour
-    else:
-        raise Exception("contour invalid")
-
-
-def resize(dataContour, img_thresh):
-    """ convert from cropped orginal resolution to low res """
-    # converts to from minimum bounding square to minimum bounding rectangle
-    imgROI = img_thresh[
-             dataContour.intY: dataContour.intY + dataContour.intHeight,
-             dataContour.intX: dataContour.intX + dataContour.intWidth
-             ]
-    imgROIResized = cv2.resize(imgROI, (RESIZED_WIDTH, RESIZED_HEIGHT))
-    npaROIResized = np.float32(imgROIResized.reshape((1, RESIZED_WIDTH * RESIZED_HEIGHT)))
-    return npaROIResized
-
-
-def ocr(img) -> str:
-    """ given a cropped binary image of a charachter, return the charachter """
-    npaContours, _npaHierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
-
-    if len(npaContours) > 1:
-        raise Exception("should only have one contour here")
-
-    dataContour = getRectangle(npaContours[0])
-    resized = resize(dataContour, img)
-
-    retval, npaResults, neigh_resp, dists = k_nearest.findNearest(resized, 3)
-    return str(chr(int(npaResults[0][0])))
+def ocr_nn(img: np.ndarray) -> str:
+    """ """
+    pass
 
 
 def getSquareLengths(approx: List[List[List[int]]]) -> Square:
@@ -203,7 +154,6 @@ def getSquareLengths(approx: List[List[List[int]]]) -> Square:
     UNUSED
     extract lengths from the co-ordinates 
     """
-    
     s = Square()
     
     s.x1, s.y1 = approx[0][0]
@@ -243,11 +193,11 @@ def filterContours(contours):
 
 
 def filterImage(image: np.ndarray) -> np.ndarray:
-    """ 
+    """
+    LEGACY
     given an image, return an image which shows only white 
     Uses K means
     """
-
     # downsample, and convert
     height, width = image.shape[:2]
     img = cv2.resize(image, (round(width / SCALE_FACTOR), round(height / SCALE_FACTOR)), interpolation=cv2.INTER_AREA)
@@ -296,8 +246,6 @@ def findCharacters(image: np.ndarray):
     
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (7, 7), 0)
-    #imgBlurred = cv2.bilateralFilter(imgGray,20,75,75)
-    
     img_thresh = cv2.adaptiveThreshold(
         imgBlurred,
         255,
@@ -306,13 +254,7 @@ def findCharacters(image: np.ndarray):
         199,
         -50
     )
-
-    #_ret, img_thresh = cv2.threshold(imgBlurred, 180, 255, cv2.THRESH_BINARY)
-
-    #img_thresh = filterImage(image)
-
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
-
     squareIndexes = filterContours(contours)
     
     results = []
@@ -330,11 +272,12 @@ def findCharacters(image: np.ndarray):
             img_blurred = cv2.bilateralFilter(cropped, 20,75,75)
             
             # TODO shave 10 pixels off from all edges to remove the frame..
+            # Shave 10% off instead?
             cropped_further = cropped[10:-10, 10:-10]
             #display(cropped_further)
 
             try:
-                char = ocr(cropped_further)
+                char = ocr_k_nearest(cropped_further)
             except:
                 logger.info("charachter not found in square")
                 char = ""
@@ -347,7 +290,8 @@ def findCharacters(image: np.ndarray):
             results.append({
                 "charachter":char, 
                 "colour":colour, 
-                "centre":centre
+                "centre":centre,
+                "position": None,
                 })
 
     if len(results) == 0:
@@ -370,21 +314,4 @@ def no_char_recognition(image):
     )
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
     squareIndexes = filterContours(contours)
-
-
-def load_model():
-    """ load data sources and train model """
-    try:
-        npaClassifications = np.loadtxt('recognition_train/classifications2.txt', np.float32)
-        npaFlattenedImages = np.loadtxt('recognition_train/imageData2.txt', np.float32)
-    except:
-        sys.exit('text files not present')
-
-    npaClassifications = npaClassifications.reshape((npaClassifications.size, 1))
-    k_nearest = cv2.ml.KNearest_create()
-    k_nearest.train(npaFlattenedImages, cv2.ml.ROW_SAMPLE, npaClassifications)
-    return k_nearest
-
-
-k_nearest = load_model()
 
