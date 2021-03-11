@@ -9,9 +9,12 @@ May have to use globals..
 """
 
 import functools
+from math import log
 from os import stat
 import time
 from typing import Callable, Dict
+
+from dronekit import Vehicle
 
 from erebus.bomb_computer import drop_point
 from erebus import camera, mission, state, target_recognition
@@ -77,21 +80,31 @@ def wait_for_arm() -> bool:
     state changes:
         - take_off_one
     """
-    if mission.vehicle.arm == True:
-        mission.vehicle.mode = "TAKEOFF"
+    if mission.vehicle.armed == True:
         state.state_manager.change_state(TAKE_OFF_ONE)
         return True
     logger.info("waiting for arm..")
     return False
 
 
-@target_loop
 def take_off_one() -> bool:
     """
     start take-off sequence, proceed once target height reached
     state changes:
         - payload_waypoints
     """
+    mission.vehicle.mode = "TAKEOFF"
+    
+    @target_loop
+    def loop():
+        if mission.vehicle.mode != "AUTO":
+            mission.vehicle.mode = "TAKEOFF"
+        if mission.vehicle.location.local_frame.down >=20:
+            return True
+        else:
+            logger.info(f"takeoff status: height is {mission.vehicle.location.local_frame.down}")
+
+    loop()
     state.state_manager.change_state(PAYLOAD_WAYPOINTS)
     return True
 

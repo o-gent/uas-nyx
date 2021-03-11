@@ -8,10 +8,25 @@ import os
 import time
 
 import dronekit
+from erebus.utils import logger
 
 
-print("connecting to vehicle")
+logger.info("connecting to vehicle")
 vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
+
+waiting = True
+while  waiting == True:
+    # force information to be fetched
+    vehicle.armed = False
+
+    try:
+        if vehicle.home_location.lat != None:
+            waiting = False
+        else:
+            pass
+    except:
+        logger.info("waiting for dronekit information")
+        time.sleep(1)
 
 TARGET_LOCATION = (100,100)
 HOME = {
