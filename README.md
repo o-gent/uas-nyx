@@ -1,7 +1,5 @@
 # Nyx, UAS Surrey team Peryton 2021
 
-Named Nyx, the partner and sister of Erebus (our first aircraft) as well as the mother of Aether (our second aircraft)
-
 Nyx co-ordinates the whole mission and the image recognition 
 
 
