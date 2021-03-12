@@ -1,10 +1,8 @@
 # Nyx, UAS Surrey team Peryton 2021
 
+-> If you want to change code, make another branch and create a merge request so I can review the changes
+
 Nyx co-ordinates the whole mission and the image recognition 
-
-
-- If you want to change code, make another branch and create a merge request so I can review the changes
-
 
 See nyx/main.py for the entry point into the program
 
