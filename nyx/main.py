@@ -8,50 +8,16 @@ May have to use globals..
 
 """
 
-import functools
-from math import log
-from os import stat
 import time
 from typing import Callable, Dict
-
-from dronekit import Vehicle
 
 from erebus.bomb_computer import drop_point
 from erebus import camera, mission, state, target_recognition
 from erebus import mission  # contains the vehicle variable
-from erebus.utils import logger  # to configure logger
+from erebus.utils import logger, target_loop
 from erebus.state import *  # for all the state names
 
 logger.info("All modules imported and ready, proceeding to main")
-
-
-# could be moved
-def target_loop(f_py=None, target_time=1.0):
-    """
-    base code for each state, while loop with a target time per loop
-    target functions must return a bool of if they want to break the loop
-    decorator with parameters 
-    https://stackoverflow.com/questions/5929107/decorators-with-parameters
-    """
-    assert callable(f_py) or f_py is None
-    def _decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            while True:
-                start = time.time()    
-                # run the actual function and check if break needed
-                ended: bool = func(*args, **kwargs)
-                if ended:
-                    break
-                sleep_time = target_time - (time.time()-start)
-                #print(sleep_time)
-                if sleep_time < 0: 
-                    logger.warning(f"{state} running behind!!")
-                    sleep_time = 0
-                time.sleep(sleep_time)
-            return True
-        return wrapper
-    return _decorator(f_py) if callable(f_py) else _decorator
 
 
 def pre_flight_checks() -> bool:
@@ -99,7 +65,7 @@ def take_off_one() -> bool:
     def loop():
         if mission.vehicle.mode != "AUTO":
             mission.vehicle.mode = "TAKEOFF"
-        if mission.vehicle.location.local_frame.down >=20:
+        if -mission.vehicle.location.local_frame.down >=20:
             return True
         else:
             logger.info(f"takeoff status: height is {mission.vehicle.location.local_frame.down}")
@@ -115,10 +81,12 @@ def payload_waypoints() -> bool:
     state changes:
         - predict_payload_impact
     """
+    # add the waypoints
+    
 
     @target_loop
     def loop():
-        if mission.is_position_reached((0,0), 100):
+        if mission.is_position_reached(mission.TARGET_LOCATION, 100):
             return True
         return False
     

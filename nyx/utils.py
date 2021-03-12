@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import functools
 
 import cv2
 import numpy as np
@@ -15,6 +16,34 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("main")
+
+
+def target_loop(f_py=None, target_time=1.0):
+    """
+    base code for each state, while loop with a target time per loop
+    target functions must return a bool of if they want to break the loop
+    decorator with parameters 
+    https://stackoverflow.com/questions/5929107/decorators-with-parameters
+    """
+    assert callable(f_py) or f_py is None
+    def _decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            while True:
+                start = time.time()    
+                # run the actual function and check if break needed
+                ended: bool = func(*args, **kwargs)
+                if ended:
+                    break
+                sleep_time = target_time - (time.time()-start)
+                #print(sleep_time)
+                if sleep_time < 0: 
+                    logger.warning(f"{state} running behind!!")
+                    sleep_time = 0
+                time.sleep(sleep_time)
+            return True
+        return wrapper
+    return _decorator(f_py) if callable(f_py) else _decorator
 
 
 def drawContours(image, contours):

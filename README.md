@@ -1,9 +1,14 @@
-# UAS image recognition for Surrey team Peryton 2021
+# Nyx, UAS Surrey team Peryton 2021
+
+Named Nyx, the partner and sister of Erebus (our first aircraft) as well as the mother of Aether (our second aircraft)
+
+Nyx co-ordinates the whole mission and the image recognition 
+
 
 - If you want to change code, make another branch and create a merge request so I can review the changes
 
 
-See erebus/main.py for the entry point into the program
+See nyx/main.py for the entry point into the program
 
 
 

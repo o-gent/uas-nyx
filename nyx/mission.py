@@ -6,6 +6,7 @@ you'll need the SITL installed to test this, i'd recommend using WSL
 import math
 import os
 import time
+from typing import List
 
 import dronekit
 from erebus.utils import logger
@@ -28,14 +29,48 @@ while  waiting == True:
         logger.info("waiting for dronekit information")
         time.sleep(1)
 
-TARGET_LOCATION = (100,100)
 HOME = {
     'lat': vehicle.home_location.lat, 
     'lon': vehicle.home_location.lon, 
     'alt': vehicle.home_location.alt
 }
 
-print("connection complete")
+logger.info("connection complete")
+
+
+"""
+MISSION SPECIFICS
+"""
+PARAMETERS = {
+    "TAKEOFF_ALT": 20,
+}
+TARGET_LOCATION = (100,100)
+PAYLOAD_WAYPOINTS = [
+    (100,100),
+    (200,200)
+]
+
+
+
+
+
+"""
+UTILITIES
+"""
+
+def parameter_start_set():
+    """ iterate through the parameter global and set each one """
+    pass
+
+
+def parameter_start_check():
+    """ check the vehicle parameters are equal to the parameter global """
+    pass
+
+
+def parameter_dynamic_set(parameters: List[str]):
+    """ set a list of parameters during flight and make sure they have been set """
+    pass
 
 
 def goto_cmd(X,Y, altitude):

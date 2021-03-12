@@ -1,4 +1,5 @@
 import erebus.main as main
+import time
 
 
 # tests have to be run in order on a fresh SITL..
@@ -18,6 +19,7 @@ def test_wait_for_arm():
     main.mission.vehicle.armed = True
     while main.mission.vehicle.armed == False:
         main.mission.vehicle.armed = True
+        time.sleep(1)
 
     main.states[main.state.state_manager.state]()
 
@@ -33,4 +35,11 @@ def test_take_off_one():
     # why the hell is the local frame altitude negative
     assert -main.mission.vehicle.location.local_frame.down >= 20
 
+    assert main.state_manager.state == main.PAYLOAD_WAYPOINTS
+
+
+def test_payload_waypoints():
     pass
+
+
+
