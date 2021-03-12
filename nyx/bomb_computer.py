@@ -21,7 +21,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import array, ndarray
 
-from erebus import utils
+from nyx import utils
 
 
 # constants

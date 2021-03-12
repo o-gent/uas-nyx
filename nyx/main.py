@@ -11,11 +11,11 @@ May have to use globals..
 import time
 from typing import Callable, Dict
 
-from erebus.bomb_computer import drop_point
-from erebus import camera, mission, state, target_recognition
-from erebus import mission  # contains the vehicle variable
-from erebus.utils import logger, target_loop
-from erebus.state import *  # for all the state names
+from nyx.bomb_computer import drop_point
+from nyx import camera, mission, state, target_recognition
+from nyx import mission  # contains the vehicle variable
+from nyx.utils import logger, target_loop
+from nyx.state import *  # for all the state names
 
 logger.info("All modules imported and ready, proceeding to main")
 

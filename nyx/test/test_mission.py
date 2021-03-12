@@ -1,4 +1,4 @@
-import erebus.main as main
+import nyx.main as main
 import time
 
 

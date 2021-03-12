@@ -13,7 +13,7 @@ def test_one():
 def test_image_recognition_accuracy():
     """ test against the dataset """
     
-    from erebus import target_recognition
+    from nyx import target_recognition
 
     files = [f for f in os.listdir('./dataset/sim_dataset/')]
 
@@ -36,7 +36,7 @@ def test_image_recognition_accuracy():
 
 
 def test_image_recognition_speed():
-    from erebus import target_recognition
+    from nyx import target_recognition
 
     files = [f for f in os.listdir('./dataset/sim_dataset/')]
     iterations = 100
@@ -54,7 +54,7 @@ def test_image_recognition_speed():
 def test_triangulate():
     """ """
 
-    from erebus import target_recognition
+    from nyx import target_recognition
 
     position = (0,0)
     target_px = (1920,1440)
@@ -75,7 +75,7 @@ def test_triangulate():
 
 def test_state():
     """ """
-    from erebus import state
+    from nyx import state
 
     state.state_manager.change_state(state.PRE_FLIGHT_CHECKS)
     

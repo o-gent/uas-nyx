@@ -9,7 +9,7 @@ import time
 from typing import List
 
 import dronekit
-from erebus.utils import logger
+from nyx.utils import logger
 
 
 logger.info("connecting to vehicle")

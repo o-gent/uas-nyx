@@ -9,8 +9,8 @@ import cv2
 import numpy as np
 from numpy.lib.npyio import load
 
-from erebus.utils import resizeWithAspectRatio, display, drawContours, timer, logger
-from erebus.k_nearest_recognition.ocr import ocr_k_nearest
+from nyx.utils import resizeWithAspectRatio, display, drawContours, timer, logger
+from nyx.k_nearest_recognition.ocr import ocr_k_nearest
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01

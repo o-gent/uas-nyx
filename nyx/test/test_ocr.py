@@ -1,9 +1,9 @@
 dataset = r"C:\Users\olive\Documents\GitHub\image-recognition\dataset\letter_set"
 import cv2
 
-from erebus import target_recognition
+from nyx import target_recognition
 import os
-from erebus.utils import display
+from nyx.utils import display
 
 
 def ocr():
