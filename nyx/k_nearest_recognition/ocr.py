@@ -65,8 +65,8 @@ def getRectangle(npaContour) -> DataContour:
 def load_model():
     """ load data sources and train model """
     try:
-        npaClassifications = np.loadtxt('erebus/k_nearest_recognition/classifications.txt', np.float32)
-        npaFlattenedImages = np.loadtxt('erebus/k_nearest_recognition/imageData.txt', np.float32)
+        npaClassifications = np.loadtxt('nyx/k_nearest_recognition/classifications.txt', np.float32)
+        npaFlattenedImages = np.loadtxt('nyx/k_nearest_recognition/imageData.txt', np.float32)
     except:
         sys.exit('text files not present')
 

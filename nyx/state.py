@@ -78,10 +78,7 @@ class State:
 
     
     def change_state(self, new_state: str):
-        """ 
-        err globals but hey, otherwise would need a class for only this reason 
-        maybe other reasons but probably not, fight me
-        """
+        """ """
         logger.info(f"STATE CHANGE from {self.state} to {new_state}")
         self._complete_state(new_state)
         self.state = new_state
