@@ -155,7 +155,7 @@ def speed_trial() -> bool:
 
     @target_loop(target_time=0.2)
     def loop() -> bool:
-        image = next(camera.take_image_test())
+        image = next(camera.Camera.take_image_test())
         result = target_recognition.findCharacters(image)
         if len(result) == 1:
             # figure out the image position
@@ -220,9 +220,8 @@ states: Dict[str, Callable] = {
     END: end
 }
 
-
-if __name__ == "__main__":
-    # run the current state
+def run():
+    """ start the mission routine """
     try:
         while True:
             states[state.state_manager.state]()
@@ -231,4 +230,8 @@ if __name__ == "__main__":
         mission.vehicle.simple_goto(mission.vehicle.home_location)
         logger.critical("main loop crashed, exiting")
         raise Exception("balls")
+
+
+if __name__ == "__main__":
+    run()
     

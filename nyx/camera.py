@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 import os
 import time
+from nyx.utils import display
+
 
 class Camera:
     def __init__(self, debug = False):
@@ -47,34 +49,13 @@ class Camera:
             yield image
 
 
-def display(img) -> None:
-    """ display 800px wide image and wait for enter """
-    img = resizeWithAspectRatio(img, width=800)
-    cv2.imshow("", img)
-    cv2.waitKey(0)
 
-def resizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
-    """ return resized image """
-    dim = None
-    (h, w) = image.shape[:2]
-
-    if width is None and height is None:
-        return image
-    if width is None:
-        r = height / float(h)
-        dim = (int(w * r), height)
-    else:
-        r = width / float(w)
-        dim = (width, int(h * r))
-
-    return cv2.resize(image, dim, interpolation=inter)
-
-
-c = Camera(debug=True)
-l = []
-l.append(c.take_image())
-l.append(c.take_image())
-time.sleep(1)
-l.append(c.take_image())
-for i in l:
-    display(i)
+if __name__ == "__main__":
+    c = Camera(debug=True)
+    l = []
+    l.append(c.take_image())
+    l.append(c.take_image())
+    time.sleep(1)
+    l.append(c.take_image())
+    for i in l:
+        display(i)

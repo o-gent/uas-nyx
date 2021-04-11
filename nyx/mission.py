@@ -6,11 +6,15 @@ you'll need the SITL installed to test this, i'd recommend using WSL
 import math
 import os
 import time
-from typing import List
+from typing import Dict, List
 
 import dronekit
 from nyx.utils import logger
 
+
+"""
+STARTUP PROCEDURE
+"""
 
 logger.info("connecting to vehicle")
 vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
@@ -41,15 +45,34 @@ logger.info("connection complete")
 """
 MISSION SPECIFICS
 """
-PARAMETERS = {
+
+# need to set everything since current parameters are unknown
+START_PARAMETERS = {
     "TAKEOFF_ALT": 20,
 }
-TARGET_LOCATION = (100,100)
+
+NON_PAYLOAD_PARAMETERS: Dict[str, int] = {
+
+}
+
+GLIDE_PARAMETERS: Dict[str, int] = {
+
+}
+
+RESET_GLIDE_PARAMETERS: Dict[str, int] = {
+
+}
+
+SPEED_TRIAL_PARAMETERS: Dict[str, int] = {
+
+}
+
 PAYLOAD_WAYPOINTS = [
     (100,100),
     (200,200)
 ]
 
+TARGET_LOCATION = (100,100)
 
 
 
@@ -58,19 +81,20 @@ PAYLOAD_WAYPOINTS = [
 UTILITIES
 """
 
-def parameter_start_set():
-    """ iterate through the parameter global and set each one """
-    pass
 
-
-def parameter_start_check():
-    """ check the vehicle parameters are equal to the parameter global """
-    pass
-
-
-def parameter_dynamic_set(parameters: List[str]):
-    """ set a list of parameters during flight and make sure they have been set """
-    pass
+def parameters_dynamic_set(parameters: Dict[str, int]):
+    """ set a list of parameters during flight and make sure they have been set, needs to complete gradually """
+    for parameter in parameters.keys():
+        # saves a bit of time if the parameter is already correct and checks param exists
+        if vehicle.parameters.get(parameter) != parameters.get(parameter):
+            vehicle.parameters[parameter] = parameters.get(parameter)
+            while vehicle.parameters.get(parameter) != parameters.get(parameter):
+                yield False
+        # still need to set more parameters
+        yield False
+    
+    # all parameters set
+    return True
 
 
 def goto_cmd(X,Y, altitude):
@@ -120,6 +144,13 @@ def takeoff():
 def is_position_reached(target_position, tolerance) -> bool:
     """ given a position, have we reached it """
     pass
+
+
+def release_payload():
+    """ set the payload release channel to high """
+    vehicle.channels.overrides = {'9': 2000}
+    time.sleep(0.2)
+    vehicle.channels.overrides = {}
 
 
 if __name__ == "__main__":
