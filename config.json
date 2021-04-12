@@ -1,0 +1,42 @@
+{
+    "START_PARAMETERS":{
+        "TAKEOFF_ALT": 20
+    },
+    
+    "NON_PAYLOAD_PARAMETERS":{
+    },
+
+    "GLIDE_PARAMETERS" :{
+
+    },
+
+    "RESET_GLIDE_PARAMETERS":{
+
+    },
+
+    "SPEED_TRIAL_PARAMETERS":{
+
+    },
+
+    "PAYLOAD_WAYPOINTS":[
+        [100,100,20],
+        [200,200,20]
+    ],
+
+    "TARGET_LOCATION":[100,100],
+
+    "CLIMB_AND_GLIDE_WAYPOINTS":[
+        [0,0,0]
+    ],
+
+    "SPEED_TRAIL_WAYPOINTS":[
+        [0,0,0]
+    ],
+
+    "AREA_SEARCH":[
+        [0,0,0],
+        [0,0,0],
+        [0,0,0],
+        [0,0,0]
+    ]
+}
