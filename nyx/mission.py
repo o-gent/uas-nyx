@@ -50,6 +50,49 @@ MISSION SPECIFICS - may change this to JSON
 # need to set everything since current parameters are unknown
 START_PARAMETERS = {
     "TAKEOFF_ALT": 20,
+    "TKOFF_ROTATE_SPD": 15,
+    "LEVEL_ROLL_LIMIT": 30,
+    "USE_REV_THRUST": 0,
+    "WP_RADIUS": 5, #TEST
+    "WP_MAX_RADIUS": 0, #TEST
+    "STALL_PREVENTION": 1,
+    "ARSPD_FBW_MIN": 14.7,
+    "ARSPD_FWB_MAX": 30,
+    "FS_LONG_ACTN": 2,
+    "FS_LONG_TIMEOUT": 5,
+    "FS_GCS_ENABLE": 2,
+    "ARSPD_USE": 1,
+    "ARSPD_SKIP_CAL": 0,
+    
+    "BATT_MONITOR": 4,
+    "BATT_CAPACITY": 3900,
+    "BATT_VOLT_PIN": 2, #TEST
+    "BATT_CURR_PIN": 3, #TEST
+    "BATT_VOLT_MULT": 10.1,
+    "BATT_AMP_PERVLT": 17,
+    "BATT_LOW_VOLT": 19.8,
+    "BATT_FS_LOW_ACT": 1,
+    
+    "LAND_SLOPE_RECALC": 2,
+    "LAND_FLARE_ALT": 2,
+    #TEST "LAND_PF_ALT":
+    #TEST "LAND_PF_ARSPD":
+    "LAND_DISARMDELAY": 10,
+    "LAND_THEN_NEUTRAL": 5,
+    #TEST "LAND_FLAP_PERCNT":
+    "LAND_TYPE": 0,
+    
+    "RNGFND1_TYPE": 14,
+    "RNGFND1_ORIENT": 25,
+    "RNGFND_ADDR": 49,
+    "RNGFND_MIN_CM": 50,
+    "RNGFND_MAX_CM": 11000,
+    
+    "SERVO_AUTO_TRIM": 1,
+    "TKOFF_ALT": 20,
+    "TKOFF_LVL_PITCH": 11,
+    "SOAR_ENABLE": 0,
+    "TECS_SPDWEIGHT": 1,
 }
 
 NON_PAYLOAD_PARAMETERS: Dict[str, int] = {
@@ -57,11 +100,16 @@ NON_PAYLOAD_PARAMETERS: Dict[str, int] = {
 }
 
 GLIDE_PARAMETERS: Dict[str, int] = {
-
+    "SOAR_ENABLE": 1,
+    "TECS_SPDWEIGHT": 2,
+    "SOAR_VSPEED": 50,
+    "SOAR_ALT_CUTOFF": 20, #confirm
+    "SOAR_ALT_MIN": 0,
 }
 
 RESET_GLIDE_PARAMETERS: Dict[str, int] = {
-
+    "SOAR_ENABLE": 0,
+    "TECS_SPDWEIGHT": 1,
 }
 
 SPEED_TRIAL_PARAMETERS: Dict[str, int] = {
