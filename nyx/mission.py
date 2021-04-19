@@ -52,7 +52,11 @@ START_PARAMETERS = {
     "TAKEOFF_ALT": 20,
     "TKOFF_ROTATE_SPD": 15,
     "LEVEL_ROLL_LIMIT": 30,
+    
     "USE_REV_THRUST": 0,
+    "THR_MIN": 0,
+    "TKOFF_THR_MAX": 75,
+    
     "WP_RADIUS": 5, #TEST
     "WP_MAX_RADIUS": 0, #TEST
     "STALL_PREVENTION": 1,
@@ -96,7 +100,7 @@ START_PARAMETERS = {
 }
 
 NON_PAYLOAD_PARAMETERS: Dict[str, int] = {
-
+    "TKOFF_THR_MAX": 60,
 }
 
 GLIDE_PARAMETERS: Dict[str, int] = {
