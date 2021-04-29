@@ -6,41 +6,47 @@ you'll need the SITL installed to test this, i'd recommend using WSL
 import math
 import os
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import dronekit
-from dronekit import LocationGlobalRelative
+from dronekit.atributes import LocationGlobalRelative
 from nyx.utils import logger
 
+vehicle: Union[dronekit.Vehicle, None] = None
+HOME: Union[dict, None] = None
 
-"""
-STARTUP PROCEDURE - runs on import
-"""
 
-logger.info("connecting to vehicle")
-vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
+def connect():
+    """
+    STARTUP PROCEDURE
+    """
+    global vehicle
+    global HOME
 
-waiting = True
-while  waiting == True:
-    # force information to be fetched
-    vehicle.armed = False
+    logger.info("connecting to vehicle")
+    vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
 
-    try:
-        if vehicle.home_location.lat != None:
-            waiting = False
-        else:
-            pass
-    except:
-        logger.info("waiting for dronekit information")
-        time.sleep(1)
+    waiting = True
+    while  waiting == True:
+        # force information to be fetched
+        vehicle.armed = False
 
-HOME = {
-    'lat': vehicle.home_location.lat, 
-    'lon': vehicle.home_location.lon, 
-    'alt': vehicle.home_location.alt
-}
+        try:
+            if vehicle.home_location.lat != None:
+                waiting = False
+            else:
+                pass
+        except:
+            logger.info("waiting for dronekit information")
+            time.sleep(1)
 
-logger.info("connection complete")
+    HOME = {
+        'lat': vehicle.home_location.lat, 
+        'lon': vehicle.home_location.lon, 
+        'alt': vehicle.home_location.alt
+    }
+
+    logger.info("connection complete")
 
 
 """

@@ -17,8 +17,6 @@ from nyx import mission  # contains the vehicle variable
 from nyx.utils import logger, target_loop
 from nyx.state import *  # for all the state names
 
-logger.info("All modules imported and ready, proceeding to main")
-
 
 def pre_flight_checks() -> bool:
     """ 
@@ -220,8 +218,14 @@ states: Dict[str, Callable] = {
     END: end
 }
 
+
 def run():
     """ start the mission routine """
+    mission.connect()
+    state.start()
+
+    logger.info("ready, proceeding to main")
+
     try:
         while True:
             states[state.state_manager.state]()

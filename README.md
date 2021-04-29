@@ -35,6 +35,11 @@ Install OpenCV with GPU support on Jetson Nano -> https://qengineering.eu/instal
 
 Install pytorch on the Nano -> https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-7-0-now-available/72048
 
+this command was useful first time setting up the camera:
+```
+v4l2-ctl --device /dev/video0 --list-formats-ext
+```
+
 ## 3. technical reference
 
 EKF

@@ -5,7 +5,7 @@ and manage state in a class cos it turns out you would need more globals than I 
 
 import time
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Union
 
 from nyx.utils import logger
 
@@ -124,4 +124,10 @@ class State:
         return error
 
 
-state_manager = State()
+# doesn't make as much sense to do this comapared to mission.py ... 
+
+state_manager: Union[State, None] = None
+
+def start():
+    global state_manager
+    state_manager = State()
