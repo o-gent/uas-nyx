@@ -7,3 +7,7 @@ cam = CameraStream().start()
 
 def find():
     print(findCharacters(cam.read()))
+
+
+import dronekit
+vehicle = dronekit.connect('/dev/ttyACM0', wait_ready=True)

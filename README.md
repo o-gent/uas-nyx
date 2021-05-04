@@ -20,9 +20,18 @@ localuser@localhost: ssh -N -f -L localhost:YYYY:localhost:XXXX remoteuser@remot
 
 Ardupilot SITL -> https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html
 
+MAVproxy, basic mavlink interface https://ardupilot.org/mavproxy/docs/getting_started/download_and_installation.html#linux
+
 software for gimbal -> https://www.basecamelectronics.com/downloads/8bit/ use version 2.2b2
 
 GLaDOS voice -> https://glados.c-net.org/ 
+
+useful USB commands
+```
+dmesg | grep tty # list devices
+ls -al /dev/serial/by-id # list USB serial devices (pixhawk...)
+sudo dmesg | more # history of devices mounted etc
+```
 
 
 ## 2. installing/compiling
@@ -38,6 +47,11 @@ Install pytorch on the Nano -> https://forums.developer.nvidia.com/t/pytorch-for
 this command was useful first time setting up the camera:
 ```
 v4l2-ctl --device /dev/video0 --list-formats-ext
+```
+
+serial ports are root by default use 
+```
+sudo usermod -a -G root <user>
 ```
 
 ## 3. technical reference
