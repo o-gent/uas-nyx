@@ -123,11 +123,3 @@ class State:
         error = total_time - total_expected # +ve bad, -ve good
         return error
 
-
-# doesn't make as much sense to do this comapared to mission.py ... 
-
-state_manager: Union[State, None] = None
-
-def start():
-    global state_manager
-    state_manager = State()

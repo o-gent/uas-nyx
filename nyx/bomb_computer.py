@@ -161,23 +161,33 @@ def bomb_plot(history: List[dict]):
 
     fig = plt.figure()
     
-    ax = fig.add_subplot(131, projection='3d')
-    ax.plot3D(x,y,z)
-    utils.set_axes_equal(ax)
+    # ax = fig.add_subplot(131, projection='3d')
+    # ax.plot3D(x,y,z)
+    # utils.set_axes_equal(ax)
+
+    marker_size = 5
 
     # er this is doesn't make much sense but yeah
     # https://stackoverflow.com/questions/6063876/matplotlib-colorbar-for-scatter
-    ax2 = fig.add_subplot(132)
-    ax2.scatter(x,y,c=z, cmap='jet')
+    #ax2 = fig.add_subplot(132)
+    ax2 = fig.add_subplot(121)
+    ax2.scatter(x, y, c=z,s=marker_size, cmap='viridis')
     plt.gca().set_aspect('equal', adjustable='box')
-    f = plt.scatter(x,y,c=z, cmap='jet')
-    plt.colorbar(f)
+    f = plt.scatter(x, y, c=z, s=marker_size, cmap='viridis')
+    ax2.set_ylabel('Y', rotation=90)
+    ax2.set_xlabel('X')
+    cbar = plt.colorbar(f)
+    cbar.set_label('Z', rotation=0)
 
-    ax3 = fig.add_subplot(133)
-    ax3.scatter(x,z,c=y, cmap='jet')
+    #ax3 = fig.add_subplot(133)
+    ax3 = fig.add_subplot(122)
+    ax3.scatter(x,z,c=y,s=marker_size, cmap='viridis')
     plt.gca().set_aspect('equal', adjustable='box')
-    f = plt.scatter(x,z,c=y, cmap='jet')
-    plt.colorbar(f)
+    f = plt.scatter(x,z,c=y, s=marker_size, cmap='viridis')
+    ax3.set_ylabel('Z', rotation=90)
+    ax3.set_xlabel('X')
+    cbar = plt.colorbar(f)
+    cbar.set_label('Y', rotation=0)
 
     plt.show()
 

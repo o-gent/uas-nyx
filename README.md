@@ -51,7 +51,7 @@ v4l2-ctl --device /dev/video0 --list-formats-ext
 
 serial ports are root by default use 
 ```
-sudo usermod -a -G root <user>
+sudo usermod -a -G tty <user>
 ```
 
 ## 3. technical reference
