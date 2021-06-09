@@ -24,7 +24,16 @@ class CameraStream :
     def __init__(self, src = 0, width = 320, height = 240) :
         if platform.system() == "Linux": # found that gstreamer backend doesn't work
             logger.info("using linux backend")
-            self.stream = cv2.VideoCapture("/dev/video0", cv2.CAP_V4L)
+            
+            waiting = True
+            while waiting:
+                try:
+                    self.stream = cv2.VideoCapture("/dev/video0", cv2.CAP_V4L)
+                    waiting = False
+                except:
+                    logger.info("camera not connected")
+                    time.sleep(1)
+            
             # not sure but forces it to work lol https://stackoverflow.com/questions/14011428/how-does-cv2-videocapture-changes-capture-resolution
             self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
             self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)

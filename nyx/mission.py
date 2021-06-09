@@ -3,6 +3,7 @@ ardupilot mission structure
 you'll need the SITL installed to test this, i'd recommend using WSL 
 """
 
+import json
 import math
 import os
 import time
@@ -10,34 +11,62 @@ from typing import Dict, List, Tuple, Union
 
 import dronekit
 from dronekit.atributes import LocationGlobalRelative
+
 from nyx.utils import logger
+
 
 class Mission():
 
-    def __init__(self):
-        self.vehicle, self.home = self.connect()
+    def __init__(self, sim:bool):
+        self.vehicle, self.home = self.connect(sim)
+        self.config = self.load_mission_parameters()
 
-
-    def connect(self) -> Tuple[dronekit.Vehicle, Dict[str, int]]:
+    
+    def load_mission_parameters(self):
+        """ 
+        Load the config.json file into a dictionary & validate
         """
-        STARTUP PROCEDURE
+        with open("config.json") as config_file:
+            config: Dict[str, Union[Dict, List]] = json.load(config_file)
+
+        logger.info("read parameters:")
+        logger.info(config)
+
+        return config
+
+
+    def connect(self, sim:bool) -> Tuple[dronekit.Vehicle, Dict[str, int]]:
+        """
+        Connect to the vehicle, check information is returned then return the object and home location
         """
 
         logger.info("connecting to vehicle")
-        vehicle = dronekit.connect('127.0.0.1:14550', wait_ready=True)
+        if sim:
+            connection_string = '127.0.0.1:14550'
+        
+        vehicle = dronekit.connect(connection_string, wait_ready=True)
 
+        waiting_time = 0
         waiting = True
         while  waiting == True:
-            # force information to be fetched
-            vehicle.armed = False
+            if waiting_time > 10:
+                del vehicle
+                waiting_time = 0
+                logger.info("connecting to vehicle again")
+                vehicle = dronekit.connect(connection_string, wait_ready=True)
 
             try:
+                # force information to be fetched
+                vehicle.armed = False
+                
                 if vehicle.home_location.lat != None:
                     waiting = False
                 else:
-                    pass
+                    logger.info("waiting for dronekit information")
+                    waiting_time += 1
             except:
                 logger.info("waiting for dronekit information")
+                waiting_time += 1
                 time.sleep(1)
 
         home = {
@@ -57,11 +86,14 @@ class Mission():
         https://dronekit-python.readthedocs.io/en/latest/guide/vehicle_state_and_parameters.html#vehicle-state-parameters
         """
         for parameter in parameters.keys():
+            
             # saves a bit of time if the parameter is already correct and checks param exists
             if self.vehicle.parameters.get(parameter) != parameters.get(parameter):
                 self.vehicle.parameters[parameter] = parameters.get(parameter)
+            
                 while self.vehicle.parameters.get(parameter) != parameters.get(parameter):
                     yield False
+            
             # still need to set more parameters
             yield False
         

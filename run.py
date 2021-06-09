@@ -1,4 +1,5 @@
 
-from nyx import run
+from nyx.main import Main
 
-run()
+main = Main(sim=True)
+main.run()

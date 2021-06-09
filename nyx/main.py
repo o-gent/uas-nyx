@@ -20,9 +20,9 @@ from nyx.state import *  # for all the state names
 
 class Main():
 
-    def __init__(self):
+    def __init__(self, sim = True):
         self.state_manager = state.State()
-        self.mission = mission.Mission()
+        self.mission = mission.Mission(sim)
         self.camera = camera.CameraStream()
 
             # each stage has its own loop and checks if it should transition to the next stage
@@ -175,6 +175,8 @@ class Main():
     def speed_trial(self) -> bool:
         # set up speed trail waypoints and start waypoints
 
+        self.camera.start()
+
         results = []
 
         @target_loop(target_time=0.2)
@@ -202,12 +204,16 @@ class Main():
             return False
         
         loop()
+
         self.state_manager.change_state(AREA_SEARCH)
         return True
 
 
     @target_loop
     def area_search(self) -> bool:
+
+        self.camera.stop()
+        
         self.state_manager.change_state(LAND_TWO)
         return True
 
@@ -225,25 +231,18 @@ class Main():
         return True
 
 
-
     def run(self):
         """ start the mission routine """
-        mission.connect()
-        self.start()
 
-        logger.info("ready, proceeding to main")
+        logger.info("warmed up, engaging improbability drive")
 
         try:
             while True:
+                logger.info(f"running {self.state_manager.state}")
                 self.states[self.state_manager.state]()
         except:
             # a bruh moment for sure
             mission.vehicle.simple_goto(mission.vehicle.home_location)
             logger.critical("main loop crashed, exiting")
             raise Exception("balls")
-
-
-if __name__ == "__main__":
-    main = Main()
-    main.run()
     
