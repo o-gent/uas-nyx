@@ -10,7 +10,8 @@ import time
 from typing import Dict, List, Tuple, Union
 
 import dronekit
-from dronekit.atributes import LocationGlobalRelative
+from dronekit.atributes import LocationGlobal, LocationGlobalRelative, LocationLocal
+from pymavlink import mavutil
 
 from nyx.utils import logger
 
@@ -18,7 +19,7 @@ from nyx.utils import logger
 class Mission():
 
     def __init__(self, sim:bool):
-        self.vehicle, self.home = self.connect(sim)
+        (self.vehicle, self.home) = self.connect(sim)
         self.config = self.load_mission_parameters()
 
     
@@ -26,7 +27,7 @@ class Mission():
         """ 
         Load the config.json file into a dictionary & validate
         """
-        with open("config.json") as config_file:
+        with open("nyx/config.json") as config_file:
             config: Dict[str, Union[Dict, List]] = json.load(config_file)
 
         logger.info("read parameters:")
@@ -43,14 +44,15 @@ class Mission():
         logger.info("connecting to vehicle")
         if sim:
             connection_string = '127.0.0.1:14550'
-        
-        vehicle = dronekit.connect(connection_string, wait_ready=True)
+        try:
+            vehicle = dronekit.connect(connection_string, wait_ready=True)
+        except:
+            logger.info("first connection failed")
 
         waiting_time = 0
         waiting = True
         while  waiting == True:
-            if waiting_time > 10:
-                del vehicle
+            if waiting_time > 5:
                 waiting_time = 0
                 logger.info("connecting to vehicle again")
                 vehicle = dronekit.connect(connection_string, wait_ready=True)
@@ -106,7 +108,7 @@ class Mission():
         pass
 
 
-    def goto_cmd(self, X,Y, altitude):
+    def goto_cmd(self, X, Y, relalt):
         """ 
         command which accepts relative co-ordinates from the point of launch 
         tried to use MAV_FRAME_LOCAL_NED, created upload issues so that didn't work
@@ -114,13 +116,14 @@ class Mission():
         conversion maybe accurate?
         TODO: https://en.wikipedia.org/wiki/Haversine_formula
         """
-        lat = self.home['lat'] + Y/111111
-        lon = self.home['lon'] + X/(111111 * math.cos(math.radians(self.home['lat'])))
+
+        location = self.local_location(X, Y, relalt)
+        lat = location.lat
+        lon = location.lon
+        altitude = location.alt
         
-        #dronekit.LocationLocal()?
-        
-        return dronekit.Command(0,0,0, dronekit.mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-        dronekit.mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, lon, altitude)
+        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, lon, altitude)
 
 
     def goto_gps_cmd(self, lat, long, altitude):
@@ -128,14 +131,14 @@ class Mission():
         command to go to co-ords at altitude 
         https://dronekit-python.readthedocs.io/en/latest/automodule.html#dronekit.CommandSequence
         """
-        return dronekit.Command(0,0,0, dronekit.mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-        dronekit.mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, long, altitude)
+        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, long, altitude)
 
 
-    def command(self, vehicle: dronekit.Vehicle, mission: List[Tuple[int,int,int]]):
+    def command(self, mission: List[Tuple[int,int,int]]):
         """ given a list of waypoint co-ords, upload a mission """
         # get ready
-        cmds = vehicle.commands
+        cmds = self.vehicle.commands
         cmds.download()
         cmds.wait_ready() 
         cmds.clear()
@@ -143,16 +146,45 @@ class Mission():
         for waypoint in mission:
             cmds.add(self.goto_cmd(*waypoint))
         cmds.upload() # Send commands
+        self.vehicle.commands.next=0
+        self.vehicle.mode = "AUTO"
 
 
     def takeoff(self):
         """ take off checks etc? """
         pass
+    
+
+    def local_location(self, X, Y, relalt):
+        """ return a LocationGlobal object """
+        earth_radius=6378137.0 #Radius of "spherical" earth
+        #Coordinate offsets in radians
+        dLat = Y/earth_radius
+        dLon = X/(earth_radius*math.cos(math.pi*self.home['lon']/180))
+        lat = self.home['lat'] + (dLat * 180/math.pi)
+        lon = self.home['lon'] + (dLon * 180/math.pi) 
+        alt = self.home['alt'] + relalt
+
+        return LocationGlobal(lat,lon, alt)
 
 
-    def is_position_reached(self, target_position, tolerance) -> bool:
+    def is_position_reached(self, location, tolerance) -> bool:
         """ given a position, have we reached it """
-        pass
+        if self.get_distance_metres(self.vehicle.location.global_frame, location) < tolerance: 
+            return True
+        else:
+            return False
+    
+    
+    def is_last_waypoint_reached(self) -> bool:
+        """ 
+        detect when the mission has ended 
+        probably need to do this by reading the mode 
+        """
+        if self.vehicle.commands.next == 0:
+            return True
+        else:
+            return False
 
 
     def release_payload(self):

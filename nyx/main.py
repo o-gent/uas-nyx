@@ -11,6 +11,8 @@ May have to use globals..
 import time
 from typing import Callable, Dict
 
+from dronekit.atributes import LocationGlobal, LocationGlobalRelative, LocationLocal
+
 from nyx.bomb_computer import drop_point
 from nyx import camera, mission, state, target_recognition
 from nyx import mission  # contains the vehicle variable
@@ -22,8 +24,10 @@ class Main():
 
     def __init__(self, sim = True):
         self.state_manager = state.State()
-        self.mission = mission.Mission(sim)
+        self.mission_manager = mission.Mission(sim)
         self.camera = camera.CameraStream()
+
+        self.state_manager.change_state(PRE_FLIGHT_CHECKS)
 
             # each stage has its own loop and checks if it should transition to the next stage
         self.states: Dict[str, Callable] = {
@@ -70,7 +74,7 @@ class Main():
         state changes:
             - take_off_one
         """
-        if self.mission.vehicle.armed == True:
+        if self.mission_manager.vehicle.armed == True:
             self.state_manager.change_state(TAKE_OFF_ONE)
             return True
         logger.info("waiting for arm..")
@@ -83,16 +87,16 @@ class Main():
         state changes:
             - payload_waypoints
         """
-        self.mission.vehicle.mode = "TAKEOFF"
+        self.mission_manager.vehicle.mode = "TAKEOFF"
         
         @target_loop
         def loop():
-            if mission.vehicle.mode != "AUTO":
-                mission.vehicle.mode = "TAKEOFF"
-            if -mission.vehicle.location.local_frame.down >=20:
+            if self.mission_manager.vehicle.mode != "AUTO":
+                self.mission_manager.vehicle.mode = "TAKEOFF"
+            if -self.mission_manager.vehicle.location.local_frame.down >=20:
                 return True
             else:
-                logger.info(f"takeoff status: height is {mission.vehicle.location.local_frame.down}")
+                logger.info(f"takeoff status: height is {self.mission_manager.vehicle.location.local_frame.down}")
 
         loop()
         self.state_manager.change_state(PAYLOAD_WAYPOINTS)
@@ -106,11 +110,13 @@ class Main():
             - predict_payload_impact
         """
         # add the waypoints
-        
+        self.mission_manager.command([(400,400,40)])
 
         @target_loop
         def loop():
-            if mission.is_position_reached(mission.TARGET_LOCATION, 100):
+            print(f"actual location {self.mission_manager.vehicle.location.local_frame}")
+            # could maybe do is final waypoint reached using the waypoint system
+            if self.mission_manager.is_position_reached(self.mission_manager.local_location(400,400,40), 20):
                 return True
             return False
         
@@ -125,18 +131,18 @@ class Main():
         use a wind speed / direction prediction to predict bomb impact
         https://ardupilot.org/dev/docs/ekf2-estimation-system.html 
         """
-        wind_bearing = self.mission.vehicle.wind.wind_direction - self.mission.vehicle.heading
+        wind_bearing = self.mission_manager.vehicle.wind.wind_direction - self.mission_manager.vehicle.heading
         # get the latest position requirement
         aim_X, aim_Y = drop_point(
             mission.TARGET_LOCATION,
-            self.mission.vehicle.location._alt,
-            self.mission.vehicle.groundspeed,
-            self.mission.vehicle.wind.wind_speed,
+            self.mission_manager.vehicle.location._alt,
+            self.mission_manager.vehicle.groundspeed,
+            self.mission_manager.vehicle.wind.wind_speed,
             wind_bearing
             )
         # check how close we are to this position
         
-        if self.mission.is_position_reached((0,0), 2):
+        if self.mission_manager.is_position_reached((0,0), 2):
             self.state_manager.change_state(DROP_BOMB)
             return True
         # aim to go to this position
@@ -186,15 +192,15 @@ class Main():
             if len(result) == 1:
                 # figure out the image position
                 target_position = target_recognition.triangulate(
-                    (self.mission.vehicle.location.local_frame.north, self.mission.vehicle.location.local_frame.east),
+                    (self.mission_manager.vehicle.location.local_frame.north, self.mission_manager.vehicle.location.local_frame.east),
                     result["centre"],
-                    self.mission.vehicle.location.local_frame.down,
-                    self.mission.vehicle.heading
+                    self.mission_manager.vehicle.location.local_frame.down,
+                    self.mission_manager.vehicle.heading
                 )
                 results.append([target_position, result])
                 logger.info(f"{target_position}, {result['charachter']}, {result['colour']}")
             
-            if self.mission.is_position_reached((0,0), 5):
+            if self.mission_manager.is_position_reached((0,0), 5):
                 return True
 
             if len(results) >= 3:
@@ -213,7 +219,7 @@ class Main():
     def area_search(self) -> bool:
 
         self.camera.stop()
-        
+
         self.state_manager.change_state(LAND_TWO)
         return True
 
@@ -226,8 +232,8 @@ class Main():
 
     @target_loop
     def end(self) -> bool:
-        self.mission.vehicle.armed = False
-        self.mission.vehicle.close()
+        self.mission_manager.vehicle.armed = False
+        self.mission_manager.vehicle.close()
         return True
 
 
@@ -242,7 +248,7 @@ class Main():
                 self.states[self.state_manager.state]()
         except:
             # a bruh moment for sure
-            mission.vehicle.simple_goto(mission.vehicle.home_location)
+            self.mission_manager.vehicle.simple_goto(self.mission_manager.vehicle.home_location)
             logger.critical("main loop crashed, exiting")
             raise Exception("balls")
     
