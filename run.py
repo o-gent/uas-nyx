@@ -36,7 +36,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # convert the args to something useful, can probably do this differently
-is_simulated = lambda x: True if x.simulated == "y" else False
+is_simulated = lambda x: True if x.simulated == "y" else True
 
 main = Main(sim=is_simulated(args))
 main.run()

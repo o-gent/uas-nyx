@@ -82,7 +82,7 @@ class Mission():
         return vehicle, home
 
 
-    def parameters_set(self, parameters: Dict[str, int]):
+    def parameters_set(self, parameters):
         """ 
         set a list of parameters during flight and make sure they have been set, needs to complete gradually 
         https://dronekit-python.readthedocs.io/en/latest/guide/vehicle_state_and_parameters.html#vehicle-state-parameters
@@ -90,17 +90,36 @@ class Mission():
         for parameter in parameters.keys():
             
             # saves a bit of time if the parameter is already correct and checks param exists
-            if self.vehicle.parameters.get(parameter) != parameters.get(parameter):
-                self.vehicle.parameters[parameter] = parameters.get(parameter)
-            
-                while self.vehicle.parameters.get(parameter) != parameters.get(parameter):
+            if self.vehicle.parameters.get(parameter) == None:
+                logger.info(f"parameter {parameter} doesn't exist")
+                continue
+
+            else:
+                condition = False
+
+                # When fetching floats from ardupilot, they will be full floats
+                # i.e we have 10.1 vs ardupilot having 10.100000381469727
+                if type(parameters.get(parameter)) == float:
+                    decimal_places = str(parameters.get(parameter))[::-1].find(".")
+                    if round(self.vehicle.parameters.get(parameter), decimal_places) != parameters.get(parameter):
+                        condition = True
+                
+                else:
+                    if self.vehicle.parameters.get(parameter) != parameters.get(parameter):
+                        condition = True
+
+                while condition:
+                    logger.info(f"setting {parameter} to {parameters.get(parameter)}")
+                    self.vehicle.parameters[parameter] = parameters.get(parameter)
+                    time.sleep(0.5)
                     yield False
-            
+
+            logger.info(f"parameter {parameter} is correct")
             # still need to set more parameters
             yield False
         
         # all parameters set
-        return True
+        yield True
 
 
     def grid_search(self, polygon):

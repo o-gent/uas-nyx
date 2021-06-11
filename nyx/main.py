@@ -63,6 +63,14 @@ class Main():
 
         # then do control surface checks
 
+        # Make sure parameters are correct
+        
+        parameter_setter = self.mission_manager.parameters_set(self.mission_manager.config.get("START_PARAMETERS"))
+        setting_parameters = False
+        while not setting_parameters:
+            setting_parameters = next(parameter_setter)
+            time.sleep(0.1)
+
         self.state_manager.change_state(WAIT_FOR_ARM)
         return True
 
@@ -134,7 +142,7 @@ class Main():
         wind_bearing = self.mission_manager.vehicle.wind.wind_direction - self.mission_manager.vehicle.heading
         # get the latest position requirement
         aim_X, aim_Y = drop_point(
-            mission.TARGET_LOCATION,
+            self.mission_manager.config.get("TARGET_LOCATION"),
             self.mission_manager.vehicle.location._alt,
             self.mission_manager.vehicle.groundspeed,
             self.mission_manager.vehicle.wind.wind_speed,
