@@ -10,7 +10,6 @@ import numpy as np
 from numpy.lib.npyio import load
 
 from nyx.utils import resizeWithAspectRatio, display, drawContours, timer, logger
-from nyx.k_nearest_recognition.ocr import ocr_k_nearest
 
 MIN_AREA = 3000
 EPSILON_MULTIPLY = 0.01
@@ -241,7 +240,7 @@ def calculateColour(image) -> List[float]:
     return dominant.tolist()
 
 
-def findCharacters(image: np.ndarray):
+def findCharacters(image: np.ndarray, ocr_method):
     """ return the charachters present in the given image """
     
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -277,7 +276,7 @@ def findCharacters(image: np.ndarray):
             #display(cropped_further)
 
             try:
-                char = ocr_k_nearest(cropped_further)
+                char = ocr_method(cropped_further)
             except:
                 logger.info("charachter not found in square")
                 char = ""

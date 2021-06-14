@@ -7,7 +7,7 @@ import json
 import math
 import os
 import time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Generator
 
 import dronekit
 from dronekit.atributes import LocationGlobal, LocationGlobalRelative, LocationLocal
@@ -82,11 +82,12 @@ class Mission():
         return vehicle, home
 
 
-    def parameters_set(self, parameters):
+    def parameters_set(self, parameters) -> Generator[bool, None, None]:
         """ 
         set a list of parameters during flight and make sure they have been set, needs to complete gradually 
         https://dronekit-python.readthedocs.io/en/latest/guide/vehicle_state_and_parameters.html#vehicle-state-parameters
         """
+        
         for parameter in parameters.keys():
             
             # saves a bit of time if the parameter is already correct and checks param exists
