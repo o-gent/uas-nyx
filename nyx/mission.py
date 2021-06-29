@@ -87,6 +87,8 @@ class Mission():
         set a list of parameters during flight and make sure they have been set, needs to complete gradually 
         https://dronekit-python.readthedocs.io/en/latest/guide/vehicle_state_and_parameters.html#vehicle-state-parameters
         """
+
+        logger.info("starting parameter setting..")
         
         for parameter in parameters.keys():
             
@@ -96,30 +98,46 @@ class Mission():
                 continue
 
             else:
-                condition = False
-
-                # When fetching floats from ardupilot, they will be full floats
-                # i.e we have 10.1 vs ardupilot having 10.100000381469727
-                if type(parameters.get(parameter)) == float:
-                    decimal_places = str(parameters.get(parameter))[::-1].find(".")
-                    if round(self.vehicle.parameters.get(parameter), decimal_places) != parameters.get(parameter):
-                        condition = True
-                
-                else:
-                    if self.vehicle.parameters.get(parameter) != parameters.get(parameter):
-                        condition = True
+                condition = True
 
                 while condition:
-                    logger.info(f"setting {parameter} to {parameters.get(parameter)}")
-                    self.vehicle.parameters[parameter] = parameters.get(parameter)
-                    time.sleep(0.5)
+
+                    # When fetching floats from ardupilot, they will be full floats
+                    # i.e we have 10.1 vs ardupilot having 10.100000381469727
+                    if type(parameters.get(parameter)) == float:
+                        decimal_places = str(parameters.get(parameter))[::-1].find(".")
+                        if round(self.vehicle.parameters.get(parameter), decimal_places) != parameters.get(parameter):
+                            condition = True
+                        else:
+                            condition = False
+                    
+                    # dronekit/ardupilot seems to report some int parameters as X.0
+                    elif type(self.vehicle.parameters.get(parameter)) == int:
+                        if float(self.vehicle.parameters.get(parameter)) != parameters.get(parameter):
+                            condition = True
+                        else:
+                            condition = False
+
+                    # if there's nothing weird going on
+                    else:
+                        if self.vehicle.parameters.get(parameter) != parameters.get(parameter):
+                            condition = True
+                        else:
+                            condition = False
+
+                    if condition:
+                        logger.info(f"setting {parameter} to {parameters.get(parameter)}")
+                        self.vehicle.parameters[parameter] = parameters.get(parameter)
+                        time.sleep(0.1)
                     yield False
+
 
             logger.info(f"parameter {parameter} is correct")
             # still need to set more parameters
             yield False
         
         # all parameters set
+        logger.info("all parameters set")
         yield True
 
 
@@ -128,7 +146,7 @@ class Mission():
         pass
 
 
-    def goto_cmd(self, X, Y, relalt):
+    def rel_waypoint(self, X, Y, relalt):
         """ 
         command which accepts relative co-ordinates from the point of launch 
         tried to use MAV_FRAME_LOCAL_NED, created upload issues so that didn't work
@@ -142,37 +160,81 @@ class Mission():
         lon = location.lon
         altitude = location.alt
         
-        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
         mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, lon, altitude)
 
 
-    def goto_gps_cmd(self, lat, long, altitude):
-        """ 
+    def waypoint(self, lat, long, altitude):
+        """
+        MODE 16
         command to go to co-ords at altitude 
         https://dronekit-python.readthedocs.io/en/latest/automodule.html#dronekit.CommandSequence
         """
         return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
         mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lat, long, altitude)
+    
+
+    def land(self, lat, long):
+        """
+        MODE 21
+        https://ardupilot.org/copter/docs/common-mavlink-mission-command-messages-mav_cmd.html
+        """
+        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        mavutil.mavlink.MAV_CMD_NAV_LAND, 0, 0, 0, 0, 0, 0, lat, long, 0)
+
+    
+    def rel_land(self, X, Y):
+        """ 
+        command which accepts relative co-ordinates from the point of launch 
+        """
+        location = self.local_location(X, Y, 0)
+        lat = location.lat
+        lon = location.lon
+
+        return self.land(lat,lon)
+
+    
+    def take_off(self, altitude):
+        """
+        MODE 22
+        https://ardupilot.org/copter/docs/common-mavlink-mission-command-messages-mav_cmd.html
+        """
+        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, altitude)
+    
+
+    def loiter_to_alt(self, X, Y, altitude):
+        """
+        MODE 31
+        """
+        location = self.local_location(X, Y, altitude)
+        
+        lat = location.lat
+        lon = location.lon
+        alt = location.alt
+        
+        return dronekit.Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        mavutil.mavlink.MAV_CMD_NAV_LOITER_TO_ALT, 0, 0, 0, 0, 0, 0, lat, lon, alt)
 
 
-    def command(self, mission: List[Tuple[int,int,int]]):
-        """ given a list of waypoint co-ords, upload a mission """
-        # get ready
+    def command(self, mission: List[dronekit.Command]):
+        """ 
+        given a list of commands, upload a mission 
+        """
+        logger.info("Starting new mission, clearing old one")
         cmds = self.vehicle.commands
         cmds.download()
         cmds.wait_ready() 
         cmds.clear()
-        # list commands
+
+        logger.info(f"sending {len(mission)} waypoints to autopilot")
         for waypoint in mission:
-            cmds.add(self.goto_cmd(*waypoint))
+            cmds.add(waypoint) #self.waypoint(*waypoint)
         cmds.upload() # Send commands
-        self.vehicle.commands.next=0
-        self.vehicle.mode = "AUTO"
 
-
-    def takeoff(self):
-        """ take off checks etc? """
-        pass
+        logger.info("running new mission")
+        self.vehicle.commands.next=0 # reset mission
+        self.vehicle.mode = "AUTO" # just incase
     
 
     def local_location(self, X, Y, relalt):
@@ -183,9 +245,9 @@ class Mission():
         dLon = X/(earth_radius*math.cos(math.pi*self.home['lon']/180))
         lat = self.home['lat'] + (dLat * 180/math.pi)
         lon = self.home['lon'] + (dLon * 180/math.pi) 
-        alt = self.home['alt'] + relalt
+        alt = relalt #self.home['alt'] + relalt
 
-        return LocationGlobal(lat,lon, alt)
+        return LocationGlobal(lat,lon,alt)
 
 
     def is_position_reached(self, location, tolerance) -> bool:
@@ -193,6 +255,16 @@ class Mission():
         if self.get_distance_metres(self.vehicle.location.global_frame, location) < tolerance: 
             return True
         else:
+            return False
+    
+    def is_altitude_reached(self, altitude:int, tolerance:int=5) -> bool:
+        """ given an altitude, check if the vehicle is at this altitude, given a tolerance"""
+        delta = abs(altitude - self.vehicle.location.global_relative_frame.alt)
+        if  delta < tolerance:
+            logger.info(f"{altitude} reached")
+            return True
+        else:
+            logger.info(f"altitude target is {altitude}, delta is {delta}")
             return False
     
     
@@ -209,9 +281,19 @@ class Mission():
 
     def release_payload(self):
         """ set the payload release channel to high """
-        self.vehicle.channels.overrides = {'9': 2000}
-        time.sleep(0.2)
-        self.vehicle.channels.overrides = {}
+        # self.vehicle.channels.overrides = {'9': 2000}
+        # time.sleep(0.2)
+        # self.vehicle.channels.overrides = {}
+
+        msg = self.vehicle.message_factory.command_long_encode(
+            0,0,
+            mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
+            0,
+            9, # servo instance number
+            1000, # PWM
+            0,0,0,0,0 # params 3-7 not used
+        )
+        self.vehicle.send_mavlink(msg)
 
 
     def distance_to_current_waypoint(self):

@@ -20,7 +20,7 @@
         "ARSPD_SKIP_CAL": 0,
         
         "BATT_MONITOR": 4,
-        "BATT_CAPACITY": 3900,
+        "BATT_CAPACITY": 3900.0,
         "BATT_VOLT_PIN": 2,
         "BATT_CURR_PIN": 3,
         "BATT_VOLT_MULT": 10.1,
@@ -1024,8 +1024,6 @@
         "STAB_PITCH_DOWN": 2,
         "STAT_BOOTCNT": 1,
         "STAT_FLTTIME": 0,
-        "STAT_RESET": 171633300,
-        "STAT_RUNTIME": 1386,
         "STEER2SRV_D": 0.005,
         "STEER2SRV_DRTFCT": 10,
         "STEER2SRV_DRTMIN": 4500,
@@ -1133,27 +1131,5 @@
 
     "SPEED_TRIAL_PARAMETERS":{
 
-    },
-
-    "PAYLOAD_WAYPOINTS":[
-        [100,100,20],
-        [200,200,20]
-    ],
-
-    "TARGET_LOCATION":[100,100],
-
-    "CLIMB_AND_GLIDE_WAYPOINTS":[
-        [0,0,0]
-    ],
-
-    "SPEED_TRAIL_WAYPOINTS":[
-        [0,0,0]
-    ],
-
-    "AREA_SEARCH":[
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-        [0,0,0]
-    ]
+    }
 }
