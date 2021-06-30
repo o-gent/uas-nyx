@@ -340,6 +340,7 @@ class Mission():
             for param in range(len(read[waypoint])):    # For each column (parameter)
                 waypoint_dict[wp_parameters[param]]=read[waypoint][param]   # Writes parameter value and name to dict
             waypoint_list.append(waypoint_dict) # Appends list with dicts
+        return waypoint_list
     
     
 if __name__ == "__main__":
