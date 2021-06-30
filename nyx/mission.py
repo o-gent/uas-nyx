@@ -7,6 +7,7 @@ import json
 import math
 import os
 import time
+import csv
 from typing import Dict, List, Tuple, Union, Generator
 
 import dronekit
@@ -326,7 +327,23 @@ class Mission():
         dlong = aLocation2.lon - aLocation1.lon
         return math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5
 
+    
+    def load_waypoints(waypoint_file):
+        file=open(waypoint_file,'r') 
+        read=list(csv.reader(file, delimiter='\t')) # Exports to list of lists of tab seperated waypoint file using csv module
+        read.pop(0) # Removes first line
 
+        wp_parameters=['index','current_wp','coord_frame','command','param1','param2','param3','param4','lat','long','alt','auto_continue']
+        waypoint_list=[]
+        for waypoint in range(len(read)):   # For each row (waypoint)
+            waypoint_dict={}
+            for param in range(len(read[waypoint])):    # For each column (parameter)
+                waypoint_dict[wp_parameters[param]]=read[waypoint][param]   # Writes parameter value and name to dict
+            waypoint_list.append(waypoint_dict) # Appends list with dicts
+        file.close()
+        return waypoint_list
+    
+    
 if __name__ == "__main__":
     # assumes SITL
     # an absolute pain but it works..
