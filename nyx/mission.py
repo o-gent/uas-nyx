@@ -328,7 +328,11 @@ class Mission():
         return math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5
 
     
-    def load_waypoints(waypoint_file):
+    @staticmethod
+    def load_waypoints(waypoint_file:str) -> List[dronekit.Command]:
+        """
+        Load commands from a mission planner generated waypoint file
+        """
         file=open(waypoint_file,'r') 
         read=list(csv.reader(file, delimiter='\t')) # Exports to list of lists of tab seperated waypoint file using csv module
         read.pop(0) # Removes first line
@@ -339,10 +343,19 @@ class Mission():
             waypoint_dict={}
             for param in range(len(read[waypoint])):    # For each column (parameter)
                 waypoint_dict[wp_parameters[param]]=read[waypoint][param]   # Writes parameter value and name to dict
-            waypoint_list.append(waypoint_dict) # Appends list with dicts
+            
+            cmd = dronekit.Command(
+                0, 0, 0, 
+                waypoint_dict.get("coord_frame"), waypoint_dict.get("command"), 
+                0, 0, 
+                waypoint_dict.get("param1"), waypoint_dict.get("param2"), waypoint_dict.get("param3"), waypoint_dict.get("param4"),
+                waypoint_dict.get("lat"), waypoint_dict.get("long"), waypoint_dict.get("alt")
+            )
+            waypoint_list.append(cmd) # Appends list with dicts
         file.close()
+
         return waypoint_list
-    
+
     
 if __name__ == "__main__":
     # assumes SITL
