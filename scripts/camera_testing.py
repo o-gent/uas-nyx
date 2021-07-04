@@ -19,8 +19,8 @@ cam.start()
 
 try:
     while True:
-        t = str(time.time()).split(".")[0]
-        cv2.imwrite(time.strftime(f"%m/%d %H:%M:%S {t}"),cam.read())
+        t = str(time.time()).split(".")[0] + "-" + str(time.time()).split(".")[1]
+        cv2.imwrite(time.strftime(f"images/%m-%d-%H:%M:%S-{t}.jpg"),cam.read()[0])
         logger.info("took image")
 
 except KeyboardInterrupt:

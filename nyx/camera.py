@@ -10,7 +10,7 @@ import os
 import platform
 import time
 from threading import Lock, Thread
-from typing import Generator
+from typing import Generator, Tuple
 
 import cv2
 import numpy as np
@@ -43,10 +43,15 @@ class CameraStream :
             self.stream = cv2.VideoCapture(1, cv2.CAP_DSHOW)
             self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 3839) # doesn't like it if you set to 3840
             self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
+            self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            #self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
+            #self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, -3.0)
+            #self.stream.set(cv2.CAP_PROP_GAIN, 0)
         
         (self.grabbed, self.frame) = self.stream.read()
         self.started = False
         self.read_lock = Lock()
+        self.time = 0
 
 
     def start(self) :
@@ -64,14 +69,20 @@ class CameraStream :
             (grabbed, frame) = self.stream.read()
             self.read_lock.acquire()
             self.grabbed, self.frame = grabbed, frame
+            self.time = time.time()
             self.read_lock.release()
 
 
-    def read(self) :
+    def read(self) -> Tuple[np.ndarray,float]:
+        """
+        return the last captured frame and the time it was taken
+        """
         self.read_lock.acquire()
         frame = self.frame.copy()
         self.read_lock.release()
-        return frame
+        #print(self.stream.get(cv2.CAP_PROP_EXPOSURE))
+        #print(self.stream.get(cv2.CAP_PROP_AUTO_EXPOSURE))
+        return frame, self.time
 
 
     def stop(self) :

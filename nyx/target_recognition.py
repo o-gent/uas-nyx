@@ -242,23 +242,27 @@ def calculateColour(image) -> List[float]:
 
 def findCharacters(image: np.ndarray, ocr_method):
     """ return the charachters present in the given image """
-    
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    imgBlurred = cv2.GaussianBlur(imgGray, (7, 7), 0)
+    imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
     img_thresh = cv2.adaptiveThreshold(
         imgBlurred,
         255,
         cv2.ADAPTIVE_THRESH_MEAN_C, 
         cv2.THRESH_BINARY,
         199,
-        -50
+        -30
     )
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
     squareIndexes = filterContours(contours)
     
+    # for contour in contours:
+    #     cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
+    #display(image)
+
     results = []
     for index in squareIndexes:
         hier = hierarchy[0][index]
+        
         if hier[3] in squareIndexes:  # if a square has a parent that is also a square
             target_contour = approxContour(contours[index])
 
@@ -292,6 +296,23 @@ def findCharacters(image: np.ndarray, ocr_method):
                 "centre":centre,
                 "position": None,
                 })
+        
+        else:
+            logger.info("square found with no interior square")
+            # get the position of the square
+            target_contour = approxContour(contours[index])
+            
+            reshaped = target_contour.reshape(4,2)
+            # get the centre of the target, then position
+            centre = target_centre(reshaped)
+
+            results.append({
+                "charachter":"", 
+                "colour":"", 
+                "centre":centre,
+                "position": None,
+                })
+
 
     if len(results) == 0:
         logger.info("nothing found")
