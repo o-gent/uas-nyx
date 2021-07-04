@@ -34,16 +34,33 @@ class CameraStream :
                     logger.info("camera not connected")
                     time.sleep(1)
             
+            """
+            CAP_PROP_ISO_SPEED is unsupported
+            CAP_PROP_WB_TEMPERATURE doesn't work?
+            standard CAP_PROP_BUFFERSIZE is 4.0
+            """
+            
             # not sure but forces it to work lol https://stackoverflow.com/questions/14011428/how-does-cv2-videocapture-changes-capture-resolution
             self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            
             self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
             self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
+            self.stream.set(cv2.CAP_PROP_GAIN, 100)
+            self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1) # 1 off, 3 on
+            self.stream.set(cv2.CAP_PROP_EXPOSURE, 400)
+            self.stream.set(cv2.CAP_PROP_AUTO_WB, 1) # 0 off, 1 on
+            #self.stream.set(cv2.CAP_PROP_WB_TEMPERATURE, -0.5) # negative warm, positive cool
+            #self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 1.0)
+            self.stream.set(cv2.CAP_PROP_HUE, 0)
+            self.stream.set(cv2.CAP_PROP_SATURATION,100)
+
         
         else: # Found this works for Windows
             self.stream = cv2.VideoCapture(1, cv2.CAP_DSHOW)
             self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 3839) # doesn't like it if you set to 3840
             self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
-            self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            #self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            self.stream.set(cv2.CAP_PROP_SETTINGS , 1)
             #self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
             #self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, -3.0)
             #self.stream.set(cv2.CAP_PROP_GAIN, 0)

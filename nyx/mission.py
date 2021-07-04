@@ -44,7 +44,12 @@ class Mission():
 
         logger.info("connecting to vehicle")
         if sim:
+            logger.info("simulated vehcile")
             connection_string = '127.0.0.1:14550'
+        else:
+            logger.info("real vehicle")
+            connection_string = '/dev/ttyACM0'
+        
         try:
             vehicle = dronekit.connect(connection_string, wait_ready=True)
         except:
