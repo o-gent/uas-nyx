@@ -47,12 +47,12 @@ class CameraStream :
             self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
             self.stream.set(cv2.CAP_PROP_GAIN, 100)
             self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1) # 1 off, 3 on
-            self.stream.set(cv2.CAP_PROP_EXPOSURE, 400)
+            self.stream.set(cv2.CAP_PROP_EXPOSURE, 100)
             self.stream.set(cv2.CAP_PROP_AUTO_WB, 1) # 0 off, 1 on
             #self.stream.set(cv2.CAP_PROP_WB_TEMPERATURE, -0.5) # negative warm, positive cool
             #self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 1.0)
-            self.stream.set(cv2.CAP_PROP_HUE, 0)
-            self.stream.set(cv2.CAP_PROP_SATURATION,100)
+            #self.stream.set(cv2.CAP_PROP_HUE, 0)
+            #self.stream.set(cv2.CAP_PROP_SATURATION,100)
 
         
         else: # Found this works for Windows
