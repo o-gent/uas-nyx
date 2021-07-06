@@ -6,6 +6,7 @@ you'll need the SITL installed to test this, i'd recommend using WSL
 import json
 import math
 import os
+import platform
 import time
 import csv
 from typing import Dict, List, Tuple, Union, Generator
@@ -44,39 +45,38 @@ class Mission():
 
         logger.info("connecting to vehicle")
         if sim:
+            logger.info("simulated vehicle")
             connection_string = '127.0.0.1:14550'
-        try:
-            vehicle = dronekit.connect(connection_string, wait_ready=True)
-        except:
-            logger.info("first connection failed")
+        else:
+            logger.info("real vehicle")
+            
+            if platform.system() == "Linux":
+                logger.info("on linux")
+                connection_string = '/dev/ttyACM0'
+            else:
+                logger.info("on windows")
+                connection_string = "COM"+input("enter COM number ->")
 
-        waiting_time = 0
+        
+
+        vehicle = dronekit.connect(connection_string, wait_ready=True)
+
         waiting = True
-        while  waiting == True:
-            if waiting_time > 5:
-                waiting_time = 0
-                logger.info("connecting to vehicle again")
-                vehicle = dronekit.connect(connection_string, wait_ready=True)
-
-            try:
-                # force information to be fetched
-                vehicle.armed = False
-                
-                if vehicle.home_location.lat != None:
-                    waiting = False
-                else:
-                    logger.info("waiting for dronekit information")
-                    waiting_time += 1
-            except:
+        while waiting:
+            if vehicle.armed != None:
+                waiting = False
                 logger.info("waiting for dronekit information")
-                waiting_time += 1
                 time.sleep(1)
 
-        home = {
-            'lat': vehicle.home_location.lat, 
-            'lon': vehicle.home_location.lon, 
-            'alt': vehicle.home_location.alt
-        }
+        try:
+            home = {
+                'lat': vehicle.home_location.lat, 
+                'lon': vehicle.home_location.lon, 
+                'alt': vehicle.home_location.alt
+            }
+        except:
+            logger.info("GPS not connected?")
+            home = None
 
         logger.info("connection complete")
 
