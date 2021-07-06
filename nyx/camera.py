@@ -43,10 +43,11 @@ class CameraStream :
             self.stream = cv2.VideoCapture(1, cv2.CAP_DSHOW)
             self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 3839) # doesn't like it if you set to 3840
             self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
-            self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            #self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            self.stream.set(cv2.CAP_PROP_SETTINGS , 1)
             #self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
             #self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, -3.0)
-            #self.stream.set(cv2.CAP_PROP_GAIN, 0)
+            #self.stream.set(cv2.CAP_PROP_GAIN, 60)
         
         (self.grabbed, self.frame) = self.stream.read()
         self.started = False
