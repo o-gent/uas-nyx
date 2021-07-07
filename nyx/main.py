@@ -190,6 +190,8 @@ class Main():
 
     @target_loop
     def take_off_two(self) -> bool:
+        # upload the new mission
+
         self.state_manager.change_state(SPEED_TRAIL)
         return True
 
@@ -203,36 +205,50 @@ class Main():
 
         @target_loop(target_time=0.2)
         def loop() -> bool:
+            
             image = next(self.camera.take_image_test())
-            result = target_recognition.findCharacters(image)
-            if len(result) == 1:
+            # need to record the location of the image now
+
+
+            image_results = target_recognition.find_targets(image)
+            
+
+            for result in image_results:
+                # save the image
+                cv2.imwrite("", image)
+
                 # figure out the image position
                 target_position = target_recognition.triangulate(
                     (self.mission_manager.vehicle.location.local_frame.north, self.mission_manager.vehicle.location.local_frame.east),
-                    result["centre"],
+                    result.centre,
                     self.mission_manager.vehicle.location.local_frame.down,
                     self.mission_manager.vehicle.heading
                 )
-                results.append([target_position, result])
-                logger.info(f"{target_position}, {result['charachter']}, {result['colour']}")
+                result.position = target_position
+                results.append(result)
+                logger.info(result)
             
             if self.mission_manager.is_position_reached((0,0), 5):
-                return True
+                # this position should be the end of the area search
+                self.camera.stop()
 
-            if len(results) >= 3:
-                # found all targets
+                # now figure out what letters are in the images while we are still flying
+                for letter_image in results:
+                    pass
+
                 return True
             
             return False
         
         loop()
 
-        self.state_manager.change_state(AREA_SEARCH)
+        self.state_manager.change_state(END)
         return True
 
 
     @target_loop
     def area_search(self) -> bool:
+        """ SKIPPED """
 
         self.camera.stop()
 
@@ -242,14 +258,19 @@ class Main():
 
     @target_loop
     def land_two(self) -> bool:
+        """ SKIPPED """
         self.state_manager.change_state(END)
         return True
 
 
     @target_loop
     def end(self) -> bool:
+        logger.info("this is the end, hold your breath and count to ten")
         self.mission_manager.vehicle.armed = False
         self.mission_manager.vehicle.close()
+        
+        # print the mission summary
+        logger.info(self)
         return True
 
 

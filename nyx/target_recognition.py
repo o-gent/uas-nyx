@@ -1,9 +1,6 @@
-import logging
+from dataclasses import dataclass
 import math
-import os
-import sys
-import time
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -19,6 +16,15 @@ RESOLUTION = np.array([3840, 2880]) # px
 FOV = math.radians(100)
 
 #cv2.setNumThreads(1)
+
+@dataclass
+class ImageRecognitionResult:
+    image_name: str = "" # file name
+    charachter: str = ""
+    colour: Tuple[int,int,int] = (0, 0, 0) # [R, G, B]
+    centre: Tuple[float,float] = (0.0, 0.0)
+    position: Tuple[float,float] = (0.0, 0.0) # lat, lon
+    cropped: np.ndarray = np.array() # the cropped image
 
 
 class Square:
@@ -228,7 +234,7 @@ def target_centre(contour: list) -> Tuple[float, float]:
     return int(x), int(y)
 
 
-def calculateColour(image) -> List[float]:
+def calculateColour(image) -> Tuple[int,int,int]:
     """ given a target, find the target colour """
     pixels = np.float32(image.reshape(-1, 3))
     n_colors = 2
@@ -237,11 +243,15 @@ def calculateColour(image) -> List[float]:
     _, labels, palette = cv2.kmeans(pixels, n_colors, None, criteria, 10, flags)
     _, counts = np.unique(labels, return_counts=True)
     dominant = palette[np.argmax(counts)]
-    return dominant.tolist()
+    raw_colour = dominant.tolist()
+    return int(raw_colour[0]), int(raw_colour[1]), int(raw_colour[2])
 
 
-def findCharacters(image: np.ndarray, ocr_method):
-    """ return the charachters present in the given image """
+def find_targets(image: np.ndarray) -> List[ImageRecognitionResult]:
+    """ 
+    return a cropped image of the target, it's position in the image and its colour
+    OCR run seperatly
+    """
     imgGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     imgBlurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
     img_thresh = cv2.adaptiveThreshold(
@@ -279,23 +289,17 @@ def findCharacters(image: np.ndarray, ocr_method):
             cropped_further = cropped[10:-10, 10:-10]
             #display(cropped_further)
 
-            try:
-                char = ocr_method(cropped_further)
-            except:
-                logger.info("charachter not found in square")
-                char = ""
-                pass
-
             # find the square colour
             colour_cropped = four_point_transform(image, target_contour.reshape(4,2))
             colour = calculateColour(colour_cropped)
 
-            results.append({
-                "charachter":char, 
-                "colour":colour, 
-                "centre":centre,
-                "position": None,
-                })
+            results.append(
+                ImageRecognitionResult(
+                    cropped=cropped_further,
+                    colour=colour,
+                    centre=centre,
+                )
+            )
         
         else:
             logger.info("square found with no interior square")
@@ -306,12 +310,11 @@ def findCharacters(image: np.ndarray, ocr_method):
             # get the centre of the target, then position
             centre = target_centre(reshaped)
 
-            results.append({
-                "charachter":"", 
-                "colour":"", 
-                "centre":centre,
-                "position": None,
-                })
+            results.append(
+                ImageRecognitionResult(
+                    centre=centre
+                )
+            )
 
 
     if len(results) == 0:
