@@ -143,7 +143,10 @@ class Mission():
 
 
     def grid_search(self, polygon):
-        """ given a polygon edge, generate a waypoint path to follow """
+        """ 
+        UNIMPLIMENTED
+        given a polygon edge, generate a waypoint path to follow 
+        """
         pass
 
 
@@ -220,7 +223,7 @@ class Mission():
 
     def command(self, mission: List[dronekit.Command]):
         """ 
-        given a list of commands, upload a mission 
+        given a list of commands, upload a mission and execute the mission
         """
         logger.info("Starting new mission, clearing old one")
         cmds = self.vehicle.commands
@@ -238,8 +241,10 @@ class Mission():
         self.vehicle.mode = "AUTO" # just incase
     
 
-    def local_location(self, X, Y, relalt):
-        """ return a LocationGlobal object """
+    def local_location(self, X, Y, relalt) -> LocationGlobal:
+        """ 
+        given X, Y distances from home, return the latitude and longitude of this position 
+        """
         earth_radius=6378137.0 #Radius of "spherical" earth
         #Coordinate offsets in radians
         dLat = Y/earth_radius
@@ -251,15 +256,23 @@ class Mission():
         return LocationGlobal(lat,lon,alt)
 
 
-    def is_position_reached(self, location, tolerance) -> bool:
-        """ given a position, have we reached it """
-        if self.get_distance_metres(self.vehicle.location.global_frame, location) < tolerance: 
+    def is_position_reached(self, location:LocationGlobal, tolerance:int=5) -> bool:
+        """ 
+        given a global position, have we reached it 
+        """
+        distance = self.get_distance_metres(self.vehicle.location.global_frame, location)
+        if  distance < tolerance: 
+            logger.info(f"{location} reached")
             return True
         else:
+            logger.info(f"{distance}m remaining")
             return False
     
+
     def is_altitude_reached(self, altitude:int, tolerance:int=5) -> bool:
-        """ given an altitude, check if the vehicle is at this altitude, given a tolerance"""
+        """ 
+        given an altitude, check if the vehicle is at this altitude, given a tolerance
+        """
         delta = abs(altitude - self.vehicle.location.global_relative_frame.alt)
         if  delta < tolerance:
             logger.info(f"{altitude} reached")
@@ -267,21 +280,12 @@ class Mission():
         else:
             logger.info(f"altitude target is {altitude}, delta is {delta}")
             return False
-    
-    
-    def is_last_waypoint_reached(self) -> bool:
-        """ 
-        detect when the mission has ended 
-        probably need to do this by reading the mode 
-        """
-        if self.vehicle.commands.next == 0:
-            return True
-        else:
-            return False
 
 
     def release_payload(self):
-        """ set the payload release channel to high """
+        """ 
+        set the payload release channel to high 
+        """
         # self.vehicle.channels.overrides = {'9': 2000}
         # time.sleep(0.2)
         # self.vehicle.channels.overrides = {}
@@ -315,7 +319,8 @@ class Mission():
         return distancetopoint
 
 
-    def get_distance_metres(self, aLocation1, aLocation2):
+    @staticmethod
+    def get_distance_metres(aLocation1, aLocation2):
         """
         Returns the ground distance in metres between two `LocationGlobal` or `LocationGlobalRelative` objects.
 

@@ -257,7 +257,7 @@ def findCharacters(image: np.ndarray, ocr_method):
     
     # for contour in contours:
     #     cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
-    #display(image)
+    # display(image)
 
     results = []
     for index in squareIndexes:
