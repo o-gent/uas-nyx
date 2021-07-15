@@ -282,7 +282,7 @@ class Mission():
             return False
 
 
-    def release_payload(self):
+    def close_payload(self):
         """ 
         set the payload release channel to high 
         """
@@ -301,7 +301,7 @@ class Mission():
         self.vehicle.send_mavlink(msg)
 
 
-    def close_payload(self):
+    def release_payload(self):
         """ 
         set the payload release channel to high 
         """
