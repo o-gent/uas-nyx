@@ -149,8 +149,23 @@ class Main():
 
     def climb_and_glide(self) -> bool:
         """ 
-        climb to 400ft over landing strip then glide and land 
+        climb to 400ft over landing strip then glide and land
         """
+
+        times_reached = 0
+        position = LocationGlobalRelative(52.780880,-0.7083570)
+
+        @target_loop(target_time=2.0)
+        def payload_release():
+            if self.mission_manager.is_position_reached(position):
+                logger.info(f"position reached {times_reached} times")
+                times_reached+=1
+            if times_reached == 2:
+                self.mission_manager.release_payload()
+                return True
+            logger.info("payload position not reached")
+            time.sleep(1)
+            return False
         
         @target_loop(target_time=2.0)
         def check_glide_start():
@@ -170,7 +185,7 @@ class Main():
                     time.sleep(0.1)
                 logger.info("parameters set")
 
-                time.sleep(10)
+                time.sleep(20)
                 # change parmeters back
                 parameter_setter = mission_manager.parameters_set(mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
                 setting_parameters = False
@@ -179,6 +194,8 @@ class Main():
                     time.sleep(0.1)
                 logger.info("parameters set")
 
+                return True
+
             else:
                 time.sleep(1)
                 logger.info(f"waiting for glide altitude not at 120m, at {mission_manager.vehicle.location.global_relative_frame.alt}")
@@ -186,7 +203,10 @@ class Main():
                     logger.info(self.predict_payload_impact())
                 except:
                     logger.info("payload prediction fail")
+                return False
 
+
+        payload_release()
         check_glide_start()
 
         while self.mission_manager.vehicle.armed == True:
