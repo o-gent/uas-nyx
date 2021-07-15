@@ -24,7 +24,7 @@ class ImageRecognitionResult:
     colour: Tuple[int,int,int] = (0, 0, 0) # [R, G, B]
     centre: Tuple[float,float] = (0.0, 0.0)
     position: Tuple[float,float] = (0.0, 0.0) # lat, lon
-    cropped: np.ndarray = np.array() # the cropped image
+    cropped: np.ndarray = np.array([]) # the cropped image
 
 
 class Square:

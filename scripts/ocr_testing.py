@@ -3,16 +3,33 @@ from nyx.k_nearest_recognition import ocr
 from nyx.utils import display
 import os
 import cv2
+import nyx.nn_ocr as nn
 
 dataset = r"C:\Users\olive\Downloads\images"
 
-o = ocr.K_nearest_recognition()
-method = o.k_nearest
-
+results = []
 for image in os.listdir(dataset):
     img = cv2.imread(os.path.join(dataset, image))
-    #utils.display(img)
-    print(target_recognition.findCharacters(img, method))
+    results.append(target_recognition.find_targets(img))
+
+# post process
+results_filtered = [result for result in results if not []]
+for result in results_filtered:
+    r = result[0]
+    image = r.cropped
+    t = str(time.time()).split(".")[0] + "-" + str(time.time()).split(".")[1]
+    cv2.imwrite(time.strftime(f"targets/%m-%d-%H:%M:%S-{t}.jpg"),image)
+
+# # ocr
+# opts = nn.Opts(
+#     image_folder="./targets",
+#     saved_model="./TPS-ResNet-BiLSTM-Attn-case-sensitive.pth",
+#     imgH=
+#     )
+
+
+
+
 
 
 # image = r"C:\Users\olive\Downloads\images\07 02 17_27_55 1625243275-037503.jpg"

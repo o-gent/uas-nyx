@@ -63,22 +63,16 @@ class Main():
         logger.info("Vehicle finished initialising, proceeding")
 
         # Make sure parameters are correct
-        parameter_setter = self.mission_manager.parameters_set(self.mission_manager.config.get("START_PARAMETERS"))
-        setting_parameters = False
-        while not setting_parameters:
-            setting_parameters = next(parameter_setter)
-            time.sleep(0.1)
-
-        # check if values make sense, level at 0 altitude etc
-
-
-        # then do control surface checks
-
+        # parameter_setter = self.mission_manager.parameters_set(self.mission_manager.config.get("START_PARAMETERS"))
+        # setting_parameters = False
+        # while not setting_parameters:
+        #     setting_parameters = next(parameter_setter)
+        #     time.sleep(0.1)
 
         self.state_manager.change_state(WAIT_FOR_ARM)
 
 
-    @target_loop
+    @target_loop(target_time=2.0)
     def wait_for_arm(self) -> bool:
         """
         check periodically for vehicle arming, proceed once observed
@@ -86,8 +80,10 @@ class Main():
             - take_off_one
         """
         if self.mission_manager.vehicle.armed == True:
+            logger.info("vehicle armed, starting mission routine")
             self.state_manager.change_state(TAKE_OFF_ONE)
             return True
+        time.sleep(1)
         logger.info("waiting for arm..")
         return False
 
@@ -100,15 +96,10 @@ class Main():
         """
         # upload payload mission including takeoff
 
-        @target_loop
-        def loop():
-            print(f"actual location {self.mission_manager.vehicle.location.local_frame}")
-            # could maybe do is final waypoint reached using the waypoint system
-            if self.mission_manager.is_position_reached(self.mission_manager.local_location(400,400,40), 20):
-                return True
-            return False
+        m = self.mission_manager.load_waypoints("./core_mission.waypoints")
+        self.mission_manager.command(m)
 
-        self.state_manager.change_state(PREDICT_PAYLOAD_IMPACT)
+        self.state_manager.change_state(CLIMB_AND_GLIDE)
         return True
 
 
@@ -119,9 +110,10 @@ class Main():
         pass
 
 
-    @target_loop
-    def predict_payload_impact(self) -> bool:
+    # @target_loop
+    def predict_payload_impact(self):
         """ 
+        SKIPPED
         use a wind speed / direction prediction to predict bomb impact
         https://ardupilot.org/dev/docs/ekf2-estimation-system.html 
         """
@@ -136,18 +128,18 @@ class Main():
             )
         # check how close we are to this position
         
-        if self.mission_manager.is_position_reached((0,0), 2):
-            # release the payload
-            self.mission_manager.release_payload()
+        # if self.mission_manager.is_position_reached((0,0), 2):
+        #     # release the payload
+        #     self.mission_manager.release_payload()
 
-            self.state_manager.change_state(CLIMB_AND_GLIDE)
-            return True
+        #     self.state_manager.change_state(CLIMB_AND_GLIDE)
+        #     return True
 
         # aim to go to this position
-        self.mission_manager.vehicle.simple_goto()
+        # self.mission_manager.vehicle.simple_goto()
         
         # haven't reached the location yet
-        return False
+        return wind_bearing, aim_X, aim_Y
 
 
     def drop_bomb(self):
@@ -155,16 +147,52 @@ class Main():
         pass
 
 
-    @target_loop
     def climb_and_glide(self) -> bool:
-        """ climb to 400ft over landing strip then glide and land """
-        # set waypoints
+        """ 
+        climb to 400ft over landing strip then glide and land 
+        """
+        
+        @target_loop(target_time=2.0)
+        def check_glide_start():
+            """ once we reach gliding height, set gliding parameters """
+            if mission_manager.is_altitude_reached(120,5):
+                logger.info("altitude reached")
+                
+                time.sleep(5)
 
+                # change parameters to glide
+                logger.info("starting glide parameter set")
+                
+                parameter_setter = mission_manager.parameters_set(mission_manager.config.get("GLIDE_PARAMETERS"))
+                setting_parameters = False
+                while not setting_parameters:
+                    setting_parameters = next(parameter_setter)
+                    time.sleep(0.1)
+                logger.info("parameters set")
 
-        # set parameters for glide once at 400ft and in descent phase
-        self.mission_manager.parameters_set(self.mission_manager.config.get("GLIDE_PARAMETERS"))
+                time.sleep(10)
+                # change parmeters back
+                parameter_setter = mission_manager.parameters_set(mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
+                setting_parameters = False
+                while not setting_parameters:
+                    setting_parameters = next(parameter_setter)
+                    time.sleep(0.1)
+                logger.info("parameters set")
 
+            else:
+                time.sleep(1)
+                logger.info(f"waiting for glide altitude not at 120m, at {mission_manager.vehicle.location.global_relative_frame.alt}")
+                try:
+                    logger.info(self.predict_payload_impact())
+                except:
+                    logger.info("payload prediction fail")
 
+        check_glide_start()
+
+        while self.mission_manager.vehicle.armed == True:
+            time.sleep(1)
+            logger.info("waiting for landing, currently armed")
+            
         self.state_manager.change_state(WAIT_FOR_CLEARANCE)
         return True
 
@@ -176,13 +204,28 @@ class Main():
         return True
 
 
-    @target_loop
     def wait_for_clearance(self) -> bool:
         # reset parameters from gliding
-        self.mission_manager.parameters_set(self.mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
+        logger.info("starting glide parameter RESET")
+        parameter_setter = mission_manager.parameters_set(mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
+        setting_parameters = False
+        while not setting_parameters:
+            setting_parameters = next(parameter_setter)
+            time.sleep(0.1)
+        logger.info("parameters set")
 
-        # wait for arm state again
-
+        @target_loop(target_time=2.0)
+        def wait():
+            # wait for arm state again
+            if self.mission_manager.vehicle.armed == True:
+                logger.info("vehicle armed, starting optional mission routine")
+                self.state_manager.change_state(TAKE_OFF_ONE)
+                return True
+            
+            time.sleep(1)
+            logger.info("waiting for arm..")
+        
+        wait()
 
         self.state_manager.change_state(TAKE_OFF_TWO)
         return True
@@ -191,6 +234,8 @@ class Main():
     @target_loop
     def take_off_two(self) -> bool:
         # upload the new mission
+        m = self.mission_manager.load_waypoints("./optional_mission.waypoints")
+        self.mission_manager.command(m)
 
         self.state_manager.change_state(SPEED_TRAIL)
         return True
@@ -207,7 +252,9 @@ class Main():
         def loop() -> bool:
             
             image = next(self.camera.take_image_test())
-            # need to record the location of the image now
+            
+            t = str(time.time()).split(".")[0] + "-" + str(time.time()).split(".")[1]
+            cv2.imwrite(time.strftime(f"targets/%m-%d-%H:%M:%S-{t}.jpg"),image)
 
 
             image_results = target_recognition.find_targets(image)
@@ -242,6 +289,8 @@ class Main():
         
         loop()
 
+        logger.info(results)
+
         self.state_manager.change_state(END)
         return True
 
@@ -249,8 +298,6 @@ class Main():
     @target_loop
     def area_search(self) -> bool:
         """ SKIPPED """
-
-        self.camera.stop()
 
         self.state_manager.change_state(LAND_TWO)
         return True
@@ -263,10 +310,8 @@ class Main():
         return True
 
 
-    @target_loop
     def end(self) -> bool:
         logger.info("this is the end, hold your breath and count to ten")
-        self.mission_manager.vehicle.armed = False
         self.mission_manager.vehicle.close()
         
         # print the mission summary
@@ -283,6 +328,8 @@ class Main():
             while True:
                 logger.info(f"running {self.state_manager.state}")
                 self.states[self.state_manager.state]()
+        except KeyboardInterrupt:
+            self.end()
         except:
             # a bruh moment for sure
             self.mission_manager.vehicle.simple_goto(self.mission_manager.vehicle.home_location)

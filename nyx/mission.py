@@ -294,8 +294,27 @@ class Mission():
             0,0,
             mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
             0,
-            9, # servo instance number
-            1000, # PWM
+            7, # servo instance number
+            850, # PWM
+            0,0,0,0,0 # params 3-7 not used
+        )
+        self.vehicle.send_mavlink(msg)
+
+
+    def close_payload(self):
+        """ 
+        set the payload release channel to high 
+        """
+        # self.vehicle.channels.overrides = {'9': 2000}
+        # time.sleep(0.2)
+        # self.vehicle.channels.overrides = {}
+
+        msg = self.vehicle.message_factory.command_long_encode(
+            0,0,
+            mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
+            0,
+            7, # servo instance number
+            1300, # PWM
             0,0,0,0,0 # params 3-7 not used
         )
         self.vehicle.send_mavlink(msg)
@@ -348,7 +367,9 @@ class Mission():
             waypoint_dict={}
             for param in range(len(read[waypoint])):    # For each column (parameter)
                 waypoint_dict[wp_parameters[param]]=read[waypoint][param]   # Writes parameter value and name to dict
-            
+
+            logger.info(f"loaded waypoint {waypoint_dict}")
+
             cmd = dronekit.Command(
                 0, 0, 0, 
                 waypoint_dict.get("coord_frame"), waypoint_dict.get("command"), 

@@ -18,3 +18,5 @@ pymavlink
 dataset/letter_set/*
 dataset/LOWER.zip
 images
+TPS-ResNet-BiLSTM-Attn-case-sensitive.pth
+targets
