@@ -5,6 +5,11 @@ import time
 mission_manager = mission.Mission(True)
 
 
+input("press enter to drop payload")
+
+self.mission_manager.release_payload()
+
+input("press enter to attempt glide")
 
 parameter_setter = mission_manager.parameters_set(mission_manager.config.get("GLIDE_PARAMETERS"))
 setting_parameters = False

@@ -155,8 +155,9 @@ class Main():
         times_reached = 0
         position = LocationGlobalRelative(52.780880,-0.7083570)
 
-        @target_loop(target_time=2.0)
+        @target_loop(target_time=0.2)
         def payload_release():
+            global times_reached
             if self.mission_manager.is_position_reached(position):
                 logger.info(f"position reached {times_reached} times")
                 times_reached+=1
@@ -164,7 +165,6 @@ class Main():
                 self.mission_manager.release_payload()
                 return True
             logger.info("payload position not reached")
-            time.sleep(1)
             return False
         
         @target_loop(target_time=2.0)
@@ -205,7 +205,7 @@ class Main():
                     logger.info("payload prediction fail")
                 return False
 
-
+        
         payload_release()
         check_glide_start()
 
