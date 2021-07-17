@@ -13,6 +13,7 @@ from typing import Callable, Dict
 
 from dronekit.atributes import LocationGlobal, LocationGlobalRelative, LocationLocal
 from pymavlink import mavutil
+import cv2
 
 from nyx.bomb_computer import drop_point
 from nyx import camera, mission, state, target_recognition
@@ -152,16 +153,16 @@ class Main():
         climb to 400ft over landing strip then glide and land
         """
 
-        times_reached = 0
+        self.times_reached = 0
         position = LocationGlobalRelative(52.780880,-0.7083570)
 
         @target_loop(target_time=0.2)
         def payload_release():
             global times_reached
             if self.mission_manager.is_position_reached(position):
-                logger.info(f"position reached {times_reached} times")
-                times_reached+=1
-            if times_reached == 2:
+                logger.info(f"position reached {self.times_reached} times")
+                self.times_reached+=1
+            if self.times_reached == 2:
                 self.mission_manager.release_payload()
                 return True
             logger.info("payload position not reached")
@@ -170,7 +171,7 @@ class Main():
         @target_loop(target_time=2.0)
         def check_glide_start():
             """ once we reach gliding height, set gliding parameters """
-            if mission_manager.is_altitude_reached(120,5):
+            if self.mission_manager.is_altitude_reached(120,5):
                 logger.info("altitude reached")
                 
                 time.sleep(5)
@@ -178,7 +179,7 @@ class Main():
                 # change parameters to glide
                 logger.info("starting glide parameter set")
                 
-                parameter_setter = mission_manager.parameters_set(mission_manager.config.get("GLIDE_PARAMETERS"))
+                parameter_setter = self.mission_manager.parameters_set(self.mission_manager.config.get("GLIDE_PARAMETERS"))
                 setting_parameters = False
                 while not setting_parameters:
                     setting_parameters = next(parameter_setter)
@@ -187,7 +188,7 @@ class Main():
 
                 time.sleep(20)
                 # change parmeters back
-                parameter_setter = mission_manager.parameters_set(mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
+                parameter_setter = self.mission_manager.parameters_set(self.mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
                 setting_parameters = False
                 while not setting_parameters:
                     setting_parameters = next(parameter_setter)
@@ -198,7 +199,7 @@ class Main():
 
             else:
                 time.sleep(1)
-                logger.info(f"waiting for glide altitude not at 120m, at {mission_manager.vehicle.location.global_relative_frame.alt}")
+                logger.info(f"waiting for glide altitude not at 120m, at {self.mission_manager.vehicle.location.global_relative_frame.alt}")
                 try:
                     logger.info(self.predict_payload_impact())
                 except:
@@ -227,7 +228,7 @@ class Main():
     def wait_for_clearance(self) -> bool:
         # reset parameters from gliding
         logger.info("starting glide parameter RESET")
-        parameter_setter = mission_manager.parameters_set(mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
+        parameter_setter = self.mission_manager.parameters_set(self.mission_manager.config.get("RESET_GLIDE_PARAMETERS"))
         setting_parameters = False
         while not setting_parameters:
             setting_parameters = next(parameter_setter)

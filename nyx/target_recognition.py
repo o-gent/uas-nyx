@@ -22,7 +22,7 @@ class ImageRecognitionResult:
     image_name: str = "" # file name
     charachter: str = ""
     colour: Tuple[int,int,int] = (0, 0, 0) # [R, G, B]
-    centre: Tuple[float,float] = (0.0, 0.0)
+    centre: Tuple[int,int] = (0, 0)
     position: Tuple[float,float] = (0.0, 0.0) # lat, lon
     cropped: np.ndarray = np.array([]) # the cropped image
 
@@ -227,7 +227,7 @@ def filterImage(image: np.ndarray) -> np.ndarray:
     return imgf
 
 
-def target_centre(contour: list) -> Tuple[float, float]:
+def target_centre(contour: list) -> Tuple[int, int]:
     """ given the square corners, return the centre of the square """
     x = sum([item[0] for item in contour])/4
     y = sum([item[1] for item in contour])/4
@@ -262,12 +262,13 @@ def find_targets(image: np.ndarray) -> List[ImageRecognitionResult]:
         199,
         -30
     )
+    display(img_thresh)
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
     squareIndexes = filterContours(contours)
     
-    # for contour in contours:
-    #     cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
-    # display(image)
+    for contour in contours:
+        cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
+    display(image)
 
     results = []
     for index in squareIndexes:
@@ -304,17 +305,21 @@ def find_targets(image: np.ndarray) -> List[ImageRecognitionResult]:
         else:
             logger.info("square found with no interior square")
             # get the position of the square
-            target_contour = approxContour(contours[index])
+            # target_contour = approxContour(contours[index])
             
-            reshaped = target_contour.reshape(4,2)
-            # get the centre of the target, then position
-            centre = target_centre(reshaped)
+            # reshaped = target_contour.reshape(4,2)
+            # # get the centre of the target, then position
+            # centre = target_centre(reshaped)
 
-            results.append(
-                ImageRecognitionResult(
-                    centre=centre
-                )
-            )
+            # cropped = four_point_transform(imgGray, reshaped)
+
+            # results.append(
+            #     ImageRecognitionResult(
+            #         centre=centre,
+            #         cropped=cropped
+            #     )
+            # )
+            pass
 
 
     if len(results) == 0:

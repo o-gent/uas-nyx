@@ -450,7 +450,6 @@
         "MIN_GNDSPD_CM":0,
         "MIS_OPTIONS":0,
         "MIS_RESTART":0,
-        "MIS_TOTAL":9,
         "MIXING_GAIN":0.5,
         "MIXING_OFFSET":0,
         "MNT_ANGMAX_PAN":4500,
@@ -968,8 +967,6 @@
         "STALL_PREVENTION":0,
         "STAT_BOOTCNT":67,
         "STAT_FLTTIME":3009,
-        "STAT_RESET":171633000,
-        "STAT_RUNTIME":58196,
         "STEER2SRV_D":0.005,
         "STEER2SRV_DRTFCT":10,
         "STEER2SRV_DRTMIN":4500,
@@ -1075,7 +1072,7 @@
         "SOAR_ENABLE": 1,
         "TECS_SPDWEIGHT": 2,
         "SOAR_VSPEED": 50,
-        "SOAR_ALT_CUTOFF": 20,
+        "SOAR_ALT_CUTOFF": 0,
         "SOAR_ALT_MIN": 0
     },
 

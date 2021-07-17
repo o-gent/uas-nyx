@@ -76,7 +76,11 @@ class Mission():
             }
         except:
             logger.info("GPS not connected?")
-            home = None
+            home = {
+                'lat':0,
+                'lon':0,
+                'alt':0
+            }
 
         logger.info("connection complete")
 

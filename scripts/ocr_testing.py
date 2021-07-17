@@ -1,22 +1,40 @@
+from typing import List
 from nyx import target_recognition
 from nyx.k_nearest_recognition import ocr
-from nyx.utils import display
+from nyx.utils import display, logger
 import os
 import cv2
-import nyx.nn_ocr as nn
+import time
 
-dataset = r"C:\Users\olive\Downloads\images"
+dataset = r"G:\targets"
+
+video = cv2.VideoCapture(r'G:\GH010123.MP4')
 
 results = []
 for image in os.listdir(dataset):
     img = cv2.imread(os.path.join(dataset, image))
     results.append(target_recognition.find_targets(img))
 
+success = True
+count = 0
+results = []
+while success:
+    try:
+        _, image = video.read() 
+        print(f'Read a new frame: {count}')
+        r = target_recognition.find_targets(image)
+        logger.info(r)
+        results.append(r)
+    except KeyboardInterrupt:
+        raise
+    except:
+        logger.info("frame failed")
+    count += 1
+
 # post process
-results_filtered = [result for result in results if not []]
+results_filtered:List[List[target_recognition.ImageRecognitionResult]] = [result for result in results if not []]
 for result in results_filtered:
-    r = result[0]
-    image = r.cropped
+    image = result.cropped
     t = str(time.time()).split(".")[0] + "-" + str(time.time()).split(".")[1]
     cv2.imwrite(time.strftime(f"targets/%m-%d-%H:%M:%S-{t}.jpg"),image)
 

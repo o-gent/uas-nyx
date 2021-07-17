@@ -67,6 +67,13 @@ The dataset can be found on the peryton teams.
 The raw source for this dataset is found at https://www.sensefly.com/education/datasets/?dataset=1502
 
 
-## 5. take a deep breath
+## 5. config exclusions
+
+cannot set
+"MIS_TOTAL"
+"STAT_RESET"
+"STAT_RUNTIME"
+
+## 6. take a deep breath
 
 Drink a beer and prepare for flying bugs
