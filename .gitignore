@@ -20,3 +20,7 @@ dataset/LOWER.zip
 images
 TPS-ResNet-BiLSTM-Attn-case-sensitive.pth
 targets
+scripts/ocr_testing.py
+log_demo_result.txt
+ESPCN_x4.pb
+TPS-ResNet-BiLSTM-Attn.pth
