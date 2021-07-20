@@ -158,7 +158,6 @@ class Main():
 
         @target_loop(target_time=0.2)
         def payload_release():
-            global times_reached
             if self.mission_manager.is_position_reached(position):
                 logger.info(f"position reached {self.times_reached} times")
                 self.times_reached+=1

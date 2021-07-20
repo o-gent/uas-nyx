@@ -5,15 +5,25 @@ from nyx.utils import display, logger
 import os
 import cv2
 import time
+from cv2 import dnn_superres
+import nyx.nn_ocr
 
-dataset = r"G:\targets"
+dataset = r"D:\targets"
 
-video = cv2.VideoCapture(r'G:\GH010123.MP4')
+video = cv2.VideoCapture(r'D:\GH010123.MP4')
+
+sr = dnn_superres.DnnSuperResImpl_create()
+sr.readModel("./ESPCN_x4.pb")
+sr.setModel("espcn", 4)
 
 results = []
 for image in os.listdir(dataset):
     img = cv2.imread(os.path.join(dataset, image))
-    results.append(target_recognition.find_targets(img))
+    #upscaled = sr.upsample(img)
+    h, w = img.shape[:2]
+    upscaled = cv2.resize(img,(w*4,h*4),interpolation = cv2.INTER_LINEAR)
+    square = target_recognition.find_targets(upscaled)
+    results.append(square)
 
 success = True
 count = 0
@@ -22,7 +32,8 @@ while success:
     try:
         _, image = video.read() 
         print(f'Read a new frame: {count}')
-        r = target_recognition.find_targets(image)
+        upscaled = sr.upsample(image)
+        r = target_recognition.find_targets(upscaled)
         logger.info(r)
         results.append(r)
     except KeyboardInterrupt:
@@ -32,11 +43,28 @@ while success:
     count += 1
 
 # post process
-results_filtered:List[List[target_recognition.ImageRecognitionResult]] = [result for result in results if not []]
+results_filtered = []
+
+for r in results:
+    for r2 in r:
+        results_filtered.append(r2)
+
 for result in results_filtered:
     image = result.cropped
+    
+    im = cv2.resize(image, (32, 32))
+
+    left, right = int((100-32)/2),int((100-32)/2)
+
+    color = [0, 0, 0]
+    new_im = cv2.copyMakeBorder(im, 0, 0, left, right, cv2.BORDER_CONSTANT,value=color)
+    
     t = str(time.time()).split(".")[0] + "-" + str(time.time()).split(".")[1]
-    cv2.imwrite(time.strftime(f"targets/%m-%d-%H:%M:%S-{t}.jpg"),image)
+    cv2.imwrite(time.strftime(f"targets/%m-%d-%H-%M-%S-{t}.jpg"),new_im)
+
+import nyx.nn_ocr as ocr
+opts = ocr.Opts(image_folder="./targets", saved_model="TPS-ResNet-BiLSTM-Attn.pth")
+ocr.ocr(opts)
 
 # # ocr
 # opts = nn.Opts(

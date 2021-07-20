@@ -14,34 +14,35 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 cudnn.benchmark = True
 cudnn.deterministic = True
 
+
 @dataclass
 class Opts:
     # required
     image_folder:str # path to image folder which contains images
     saved_model:str # path to saved_model evaluation
-    Transformation:str="TPS" # Transformation stage None | TPS
-    FeatureExtraction:str="ResNet" # VGG | RCNN | ResNet
-    SequenceModelling:str="BiLSTM" # SequenceModeling stage. None | BiLSTM
-    Prediction:str="Attn" # CTC | Attn
-    imgH:int 
-    imgW:int
     
     # optional
+    imgH:int = 32
+    imgW:int = 100
+    Transformation:str="TPS" # Transformation stage None | TPS
+    FeatureExtraction:str="ResNet" # VGG | RCNN | ResNet
+    SequenceModeling:str="BiLSTM" # SequenceModeling stage. None | BiLSTM
+    Prediction:str="Attn" # CTC | Attn
     workers:int = 4 # number of data loading workers
     batch_size:int = 192 # input batch size
     batch_max_length:int = 25 # maximum label length
-    charachter:str = "0123456789abcdefghijklmnopqrstuvwxyz"
+    character:str = "0123456789abcdefghijklmnopqrstuvwxyz"
     sensitive:str = False # is case sensitive
     num_fiducial:int = 20
     input_channel:int = 1
     output_channel:int = 512
     hidden_size:int = 256
     rgb:bool = False
-    PAD:bool = False
+    PAD:bool = True
     num_gpu = torch.cuda.device_count()
 
 
-def demo(opt:Opts):
+def ocr(opt:Opts):
     """ model configuration """
     if 'CTC' in opt.Prediction:
         converter = CTCLabelConverter(opt.character)
@@ -52,9 +53,6 @@ def demo(opt:Opts):
     if opt.rgb:
         opt.input_channel = 3
     model = Model(opt)
-    print('model input parameters', opt.imgH, opt.imgW, opt.num_fiducial, opt.input_channel, opt.output_channel,
-          opt.hidden_size, opt.num_class, opt.batch_max_length, opt.Transformation, opt.FeatureExtraction,
-          opt.SequenceModeling, opt.Prediction)
     model = torch.nn.DataParallel(model).to(device)
 
     # load model
@@ -90,6 +88,7 @@ def demo(opt:Opts):
                 preds_str = converter.decode(preds_index, preds_size)
 
             else:
+
                 preds = model(image, text_for_pred, is_train=False)
 
                 # select max probabilty (greedy decoding) then decode index to character

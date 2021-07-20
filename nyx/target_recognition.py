@@ -25,6 +25,7 @@ class ImageRecognitionResult:
     centre: Tuple[int,int] = (0, 0)
     position: Tuple[float,float] = (0.0, 0.0) # lat, lon
     cropped: np.ndarray = np.array([]) # the cropped image
+    no_nested_square: bool = False 
 
 
 class Square:
@@ -247,7 +248,7 @@ def calculateColour(image) -> Tuple[int,int,int]:
     return int(raw_colour[0]), int(raw_colour[1]), int(raw_colour[2])
 
 
-def find_targets(image: np.ndarray) -> List[ImageRecognitionResult]:
+def find_targets(image: np.ndarray, debug=False) -> List[ImageRecognitionResult]:
     """ 
     return a cropped image of the target, it's position in the image and its colour
     OCR run seperatly
@@ -262,13 +263,16 @@ def find_targets(image: np.ndarray) -> List[ImageRecognitionResult]:
         199,
         -30
     )
-    display(img_thresh)
+    if debug: 
+        display(img_thresh)
+
     contours, hierarchy = cv2.findContours(img_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
     squareIndexes = filterContours(contours)
     
-    for contour in contours:
-        cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
-    display(image)
+    if debug:
+        for contour in contours:
+            cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
+        display(image)
 
     results = []
     for index in squareIndexes:
@@ -304,21 +308,22 @@ def find_targets(image: np.ndarray) -> List[ImageRecognitionResult]:
         
         else:
             logger.info("square found with no interior square")
-            # get the position of the square
-            # target_contour = approxContour(contours[index])
+            #get the position of the square
+            target_contour = approxContour(contours[index])
             
-            # reshaped = target_contour.reshape(4,2)
-            # # get the centre of the target, then position
-            # centre = target_centre(reshaped)
+            reshaped = target_contour.reshape(4,2)
+            # get the centre of the target, then position
+            centre = target_centre(reshaped)
 
-            # cropped = four_point_transform(imgGray, reshaped)
+            cropped = four_point_transform(image, reshaped)
 
-            # results.append(
-            #     ImageRecognitionResult(
-            #         centre=centre,
-            #         cropped=cropped
-            #     )
-            # )
+            results.append(
+                ImageRecognitionResult(
+                    centre=centre,
+                    cropped=cropped,
+                    no_nested_square=False
+                )
+            )
             pass
 
 
