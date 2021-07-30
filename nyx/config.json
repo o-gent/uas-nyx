@@ -1069,15 +1069,10 @@
     },
 
     "GLIDE_PARAMETERS" :{
-        "SOAR_ENABLE": 1,
-        "TECS_SPDWEIGHT": 2,
-        "SOAR_VSPEED": 50,
-        "SOAR_ALT_CUTOFF": 0,
-        "SOAR_ALT_MIN": 0
+        "TECS_SPDWEIGHT": 2
     },
 
     "RESET_GLIDE_PARAMETERS":{
-        "SOAR_ENABLE": 0,
         "TECS_SPDWEIGHT": 1
     },
 
