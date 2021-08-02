@@ -1,4 +1,39 @@
 {
+    "STATE_TIMING":{
+        "TAKE_OFF_ONE": 0,
+        "PAYLOAD_WAYPOINTS": 0,
+        "PREDICT_PAYLOAD_IMPACT": 0,
+        "DROP_BOMB": 0,
+        "CLIMB_AND_GLIDE": 0,
+        "LAND_ONE": 0,
+
+        "TAKE_OFF_TWO": 0,
+        "SPEED_TRIAL": 0,
+        "AREA_SEARCH": 0,
+        "LAND_TWO": 0
+    },
+
+    "PAYLOAD_DETAILS":{
+        "MASS":5.5,
+        "LOCATION": [0,0]
+    },
+    
+    "NON_PAYLOAD_PARAMETERS":{
+        "TKOFF_THR_MAX": 60
+    },
+
+    "GLIDE_PARAMETERS" :{
+        "TECS_SPDWEIGHT": 2
+    },
+
+    "RESET_GLIDE_PARAMETERS":{
+        "TECS_SPDWEIGHT": 1
+    },
+
+    "SPEED_TRIAL_PARAMETERS":{
+
+    },
+
     "START_PARAMETERS":{
         "ACRO_LOCKING":0,
         "ACRO_PITCH_RATE":180,
@@ -1062,21 +1097,5 @@
         "YAW2SRV_INT":0,
         "YAW2SRV_RLL":1,
         "YAW2SRV_SLIP":0
-    },
-    
-    "NON_PAYLOAD_PARAMETERS":{
-        "TKOFF_THR_MAX": 60
-    },
-
-    "GLIDE_PARAMETERS" :{
-        "TECS_SPDWEIGHT": 2
-    },
-
-    "RESET_GLIDE_PARAMETERS":{
-        "TECS_SPDWEIGHT": 1
-    },
-
-    "SPEED_TRIAL_PARAMETERS":{
-
     }
 }
