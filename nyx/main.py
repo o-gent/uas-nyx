@@ -19,7 +19,7 @@ class Main():
         self.mission_manager = mission.Mission(sim)
         self.camera = camera.CameraStream()
 
-        self.state_manager.change_state(PRE_FLIGHT_CHECKS)
+        self.state_manager.change_state(StateList.PRE_FLIGHT_CHECKS)
 
         # each stage has its own loop and checks if it should transition to the next stage
         self.states: Dict[str, Callable] = {

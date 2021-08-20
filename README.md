@@ -7,6 +7,21 @@ Nyx co-ordinates the whole mission and the image recognition
 See nyx/main.py for the entry point into the program
 
 
+## 0. Aim of the program
+
+- Run Image Recognition
+    - Segment an image to find a target
+    - Retrieve Colour, Charachter, GPS position from target
+
+- Co-ordinate the flight computer
+    - Switch from gliding mode / powered mode
+    - Start/Stop image recognition when required
+    - Enable mission split?
+    - increase payload drop accuracy
+    - Reduce human error in operation (check parameters and list physical checks)
+    - End mission based on time & battery
+    - Dynamic glide landing approach based on wind?
+
 
 
 ## 1. tools & workflow
