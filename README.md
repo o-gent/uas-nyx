@@ -1,4 +1,4 @@
-# Nyx, UAS Surrey team Peryton 2021
+# Nyx, UAS Surrey team Peryton 2021-22
 
 
 **Nyx co-ordinates the whole mission and the image recognition**
