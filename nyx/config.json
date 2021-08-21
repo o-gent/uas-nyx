@@ -1,16 +1,16 @@
 {
     "STATE_TIMING":{
-        "TAKE_OFF_ONE": 0,
-        "PAYLOAD_WAYPOINTS": 0,
-        "PREDICT_PAYLOAD_IMPACT": 0,
-        "DROP_BOMB": 0,
-        "CLIMB_AND_GLIDE": 0,
-        "LAND_ONE": 0,
+        "take_off_one": 0,
+        "payload_waypoints": 0,
+        "predict_payload_impact": 0,
+        "drop_bomb": 0,
+        "climb_and_glide": 0,
+        "land_one": 0,
 
-        "TAKE_OFF_TWO": 0,
-        "SPEED_TRIAL": 0,
-        "AREA_SEARCH": 0,
-        "LAND_TWO": 0
+        "take_off_two": 0,
+        "speed_trial": 0,
+        "area_search": 0,
+        "land_two": 0
     },
 
     "PAYLOAD_DETAILS":{

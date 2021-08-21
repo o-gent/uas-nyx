@@ -4,8 +4,8 @@ and manage state in a class cos it turns out you would need more globals than I 
 """
 
 import time
-from dataclasses import dataclass
-from typing import Dict, Union
+from dataclasses import dataclass, asdict
+from typing import Dict
 
 from nyx.utils import logger
 
@@ -29,46 +29,51 @@ class StateList:
     LAND_TWO = "land_two"
     END = "end"
 
-
-@dataclass
-class StateTiming:
-    """ just makes it more intelligent than a dictionary """
-    expected: int
-    started: int = 0
-    end: int = 0
-    taken: int = 0
-
-
-# state timing
-# expected amount of time, time started (blank), time taken (blank)
-# if the state isn't in this list then we aren't interested in timing it
-state_time: Dict[str, StateTiming] = {
-    StateList.TAKE_OFF_ONE: StateTiming(0),
-    StateList.PAYLOAD_WAYPOINTS: StateTiming(0),
-    StateList.PREDICT_PAYLOAD_IMPACT: StateTiming(0),
-    StateList.DROP_BOMB: StateTiming(0),
-    StateList.CLIMB_AND_GLIDE: StateTiming(0),
-    StateList.LAND_ONE: StateTiming(0),
-    
-    StateList.TAKE_OFF_TWO: StateTiming(0),
-    StateList.SPEED_TRAIL: StateTiming(0),
-    StateList.AREA_SEARCH: StateTiming(0),
-    StateList.LAND_TWO: StateTiming(0)
-}
+    def keys(self):
+        """ This is annoying but I can't find another way """
+        return [
+            self.NULL,
+            self.PRE_FLIGHT_CHECKS,
+            self.WAIT_FOR_ARM,
+            self.TAKE_OFF_ONE,
+            self.PAYLOAD_WAYPOINTS,
+            self.PREDICT_PAYLOAD_IMPACT,
+            self.CLIMB_AND_GLIDE,
+            self.LAND_ONE,
+            self.WAIT_FOR_CLEARANCE,
+            self.TAKE_OFF_TWO,
+            self.SPEED_TRAIL,
+            self.AREA_SEARCH,
+            self.LAND_TWO,
+            self.END
+        ]
 
 
 class State:
     """ 
     keep track of timings and state and all that fun stuff 
     """
+    @dataclass
+    class StateTiming:
+        """ just makes it more intelligent than a dictionary """
+        expected: int
+        started: int = 0
+        end: int = 0
+        taken: int = 0
 
-    def __init__(self):
+
+    def __init__(self, config):
         self.state = StateList.NULL
-        self._state_time = state_time
+        self._state_time = self.load_state_times(config)
         self.misson_time = 0
         self._timer = 0 # a timestap to calculate a time delta from
-        logger.info("state object created")
+        logger.info(f"state object created")
 
+
+    def load_state_times(self, config) -> Dict[str, StateTiming]:
+        state_timing: Dict[str, int] = config.get("STATE_TIMING")
+        return {key: self.StateTiming(state_timing.get(key, 0)) for key in state_timing}
+        
     
     def start_timer(self):
         """ 
@@ -90,7 +95,7 @@ class State:
         """ 
         returns the mission time error
         """
-        if new_state in StateList.__dict__().keys():
+        if new_state in StateList().keys():
             logger.info(f"STATE CHANGE from {self.state} to {new_state}")
             time_error = self._complete_state(new_state)
             self.state = new_state

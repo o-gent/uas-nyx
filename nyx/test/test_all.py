@@ -70,39 +70,3 @@ def test_triangulate():
     result = target_recognition.triangulate(position, target_px, altitude, heading)
     result = round(result[0], 3)
     assert(result == -1.192)
-    
-    
-
-def test_state():
-    """ """
-    from nyx import state
-
-    state.state_manager.change_state(state.PRE_FLIGHT_CHECKS)
-    
-    time.sleep(1) # shouldn't be taken account of
-    
-    state.state_manager.change_state(state.WAIT_FOR_ARM)
-    state.state_manager.change_state(state.TAKE_OFF_ONE)
-    state.state_manager.change_state(state.PAYLOAD_WAYPOINTS)
-    state.state_manager.change_state(state.PREDICT_PAYLOAD_IMPACT)
-    state.state_manager.change_state(state.DROP_BOMB)
-    state.state_manager.change_state(state.CLIMB_AND_GLIDE)
-    
-    time.sleep(2)
-    
-    state.state_manager.change_state(state.LAND_ONE)
-    state.state_manager.change_state(state.WAIT_FOR_CLEARANCE)
-    
-    time.sleep(1) # this one shouldn't be taken account of
-
-    state.state_manager.change_state(state.TAKE_OFF_TWO)
-    state.state_manager.change_state(state.SPEED_TRAIL)
-    
-    time.sleep(3)
-    
-    state.state_manager.change_state(state.AREA_SEARCH)
-    state.state_manager.change_state(state.LAND_TWO)
-    state.state_manager.change_state(state.END)
-
-    assert(int(state.state_manager.elapsed_mission_time()) == 5)
-    assert(int(state.state_time[state.CLIMB_AND_GLIDE].taken) == 2)

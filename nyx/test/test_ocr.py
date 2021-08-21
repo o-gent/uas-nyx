@@ -1,7 +1,7 @@
 dataset = r"C:\Users\olive\Documents\GitHub\image-recognition\dataset\letter_set"
 import cv2
 
-from nyx import target_recognition
+from nyx.recognition import target_recognition
 import os
 from nyx.utils import display
 

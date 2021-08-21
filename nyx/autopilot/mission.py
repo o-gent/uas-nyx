@@ -3,13 +3,12 @@ ardupilot mission structure
 you'll need the SITL installed to test this, i'd recommend using WSL 
 """
 
-import json
 import math
 import os
 import platform
 import time
 import csv
-from typing import Dict, List, Tuple, Union, Generator
+from typing import Dict, List, SupportsIndex, SupportsInt, Tuple, Generator, Union
 
 import dronekit
 from dronekit.atributes import LocationGlobal, LocationGlobalRelative, LocationLocal
@@ -20,22 +19,9 @@ from nyx.utils import logger
 
 class Mission():
 
-    def __init__(self, sim:bool):
+    def __init__(self, sim:bool, config:dict):
         (self.vehicle, self.home) = self.connect(sim)
-        self.config = self.load_mission_parameters()
-
-    
-    def load_mission_parameters(self):
-        """ 
-        Load the config.json file into a dictionary & validate
-        """
-        with open("nyx/config.json") as config_file:
-            config: Dict[str, Union[Dict, List]] = json.load(config_file)
-
-        logger.info("read parameters:")
-        logger.info(config)
-
-        return config
+        self.config = config
 
 
     def connect(self, sim:bool) -> Tuple[dronekit.Vehicle, Dict[str, int]]:

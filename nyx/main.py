@@ -2,26 +2,33 @@ import time
 from typing import Callable, Dict
 
 import cv2
-from dronekit.atributes import LocationGlobalRelative
+from dronekit.atributes import LocationGlobal, LocationGlobalRelative
 from pymavlink import mavutil
 
-from nyx import mission  # contains the vehicle variable
-from nyx import camera, state, target_recognition
-from nyx.bomb_computer import drop_point
-from nyx.state import StateList
+from nyx.recognition import camera, target_recognition
+from nyx import config
+from nyx.autopilot import state, mission
+from nyx.autopilot.bomb_computer import drop_point
+from nyx.autopilot.state import StateList
 from nyx.utils import logger, target_loop
+from nyx.config import load_mission_parameters
 
 
-class Main():
-
+class Main:
+    """
+    Co-ordinates mission stages
+    """
+    
     def __init__(self, sim = True):
-        self.state_manager = state.State()
-        self.mission_manager = mission.Mission(sim)
+        """
+        
+        """
+        self.config = load_mission_parameters()
+        self.mission_manager = mission.Mission(sim, config)
+        self.state_manager = state.State(config)
         self.camera = camera.CameraStream()
-
-        self.state_manager.change_state(StateList.PRE_FLIGHT_CHECKS)
-
-        # each stage has its own loop and checks if it should transition to the next stage
+        
+        # Dictionary of state methods, works with self.run
         self.states: Dict[str, Callable] = {
             StateList.PRE_FLIGHT_CHECKS: self.pre_flight_checks,
             StateList.WAIT_FOR_ARM: self.wait_for_arm,
@@ -38,14 +45,39 @@ class Main():
             StateList.LAND_TWO: self.land_two,
             StateList.END: self.end
         }
+
+        # start the process
+        self.state_manager.change_state(StateList.PRE_FLIGHT_CHECKS)
+    
+    
+    def run(self):
+        """ 
+        Run the current mission stage and manage any overall errors
+        """
+
+        logger.info("warmed up, engaging improbability drive")
+
+        try:
+            while True:
+                logger.info(f"running {self.state_manager.state}")
+                
+                self.states[self.state_manager.state]()
+        
+        except KeyboardInterrupt:
+            self.end()
+        
+        except:
+            # a bruh moment for sure
+            self.mission_manager.vehicle.simple_goto(self.mission_manager.vehicle.home_location)
+            logger.critical("main loop crashed, exiting")
+            raise Exception("balls")
         
 
     def pre_flight_checks(self):
-        """ 
+        """
+        MISSION_STAGE
+        
         user prompt to ensure the vehicle is ready
-        not a loop
-        state changes:
-            - wait_for_arm
         """
         # make dronekit is working correctly & vehicle is ready
         while self.mission_manager.vehicle.is_armable == False:
@@ -66,9 +98,9 @@ class Main():
     @target_loop(target_time=2.0)
     def wait_for_arm(self) -> bool:
         """
+        MISSION_STAGE
+
         check periodically for vehicle arming, proceed once observed
-        state changes:
-            - take_off_one
         """
         if self.mission_manager.vehicle.armed == True:
             logger.info("vehicle armed, starting mission routine")
@@ -79,51 +111,59 @@ class Main():
         return False
 
 
-    def take_off_one(self) -> bool:
+    def take_off_one(self):
         """
+        MISSION_STAGE
+
         start take-off sequence, proceed once target height reached
-        state changes:
-            - payload_waypoints
         """
         # upload payload mission including takeoff
 
         m = self.mission_manager.load_waypoints("./core_mission.waypoints")
         self.mission_manager.command(m)
 
-        self.state_manager.change_state(StateList.CLIMB_AND_GLIDE)
-        return True
+        self.state_manager.change_state(StateList.PAYLOAD_WAYPOINTS)
 
 
-    def payload_waypoints(self) -> bool:
+    def payload_waypoints(self):
         """ 
-        SKIPPED
+        MISSION_STAGE
+        
+        Waits until we are close to the drop location, then passes onto payload drop prediction
         """
         self.times_reached = 0
         position = LocationGlobalRelative(52.780880,-0.7083570)
 
         @target_loop(target_time=0.1)
         def payload_release():
-            if self.mission_manager.is_position_reached(position):
+            
+            if self.mission_manager.is_position_reached(position,tolerance=50):
                 logger.info(f"position reached {self.times_reached} times")
-                self.times_reached+=1
-            if self.times_reached == 2:
-                self.mission_manager.release_payload()
+                self.times_reached += 1
+            
+            elif self.times_reached == 2:
+                self.state_manager.change_state(StateList.PREDICT_PAYLOAD_IMPACT)
                 return True
-            logger.info("payload position not reached")
-            return False
+            
+            else:
+                logger.info("payload position not reached")
+                return False
         
-        self.state_manager.change_state(StateList.PREDICT_PAYLOAD_IMPACT)
-        return True
+        payload_release()
 
 
     @target_loop(target_time=0.1)
-    def predict_payload_impact(self):
+    def predict_payload_impact(self) -> bool:
         """ 
-        SKIPPED
+        MISSION_STAGE
+
         use a wind speed / direction prediction to predict bomb impact
-        https://ardupilot.org/dev/docs/ekf2-estimation-system.html 
+        https://ardupilot.org/dev/docs/ekf2-estimation-system.html
+
+        Using simple_goto() will change the vehicle state to GUIDED
         """
         wind_bearing = self.mission_manager.vehicle.wind.wind_direction - self.mission_manager.vehicle.heading
+        
         # get the latest position requirement
         aim_X, aim_Y = drop_point(
             self.mission_manager.config.get("TARGET_LOCATION"),
@@ -132,32 +172,35 @@ class Main():
             self.mission_manager.vehicle.wind.wind_speed,
             wind_bearing
             )
+        
+        drop_location = self.mission_manager.local_location(aim_X, aim_Y)
+
+        self.mission_manager.vehicle.simple_goto(drop_location)
+        
         # check how close we are to this position
+        if self.mission_manager.is_position_reached(drop_location, tolerance=5):
+            # release the payload
+            self.mission_manager.release_payload()
+
+            self.state_manager.change_state(StateList.CLIMB_AND_GLIDE)
+            return True
         
-        # if self.mission_manager.is_position_reached((0,0), 2):
-        #     # release the payload
-        #     self.mission_manager.release_payload()
-
-        #     self.state_manager.change_state(CLIMB_AND_GLIDE)
-        #     return True
-
-        # aim to go to this position
-        # self.mission_manager.vehicle.simple_goto()
-        
-        # haven't reached the location yet
-
-        
-        return False
-
-        self.state_manager.change_state(StateList.CLIMB_AND_GLIDE)
-        return True
+        else:
+            return False
 
 
     @target_loop(target_time=0.2)
     def climb_and_glide(self) -> bool:
-        """ 
+        """
+        MISSION_STAGE
+
         climb to 400ft over landing strip then glide and land
         """
+
+        # Now need to upload the glide section of the mission
+        # could maybe do this with the config file instead, as the waypoints won't be complicated
+        m = self.mission_manager.load_waypoints("./glide.waypoints")
+        self.mission_manager.command(m)
         
         if self.mission_manager.is_altitude_reached(120,5):
             logger.info("altitude reached")
@@ -180,13 +223,15 @@ class Main():
         else:
             logger.info(f"waiting for glide altitude not at 120m, at {self.mission_manager.vehicle.location.global_relative_frame.alt}")
             return False
-            
-        return True
 
 
     @target_loop
     def land_one(self) -> bool:
-        """ when the vehicle has disarmed, we have landed """
+        """ 
+        MISSION_STAGE
+
+        when the vehicle has disarmed, we have landed 
+        """
         while self.mission_manager.vehicle.armed == True:
             time.sleep(1)
             logger.info("waiting for landing, currently armed")
@@ -195,8 +240,10 @@ class Main():
         return True
 
 
-    def wait_for_clearance(self) -> bool:
+    def wait_for_clearance(self):
         """
+        MISSION_STAGE
+
         Reset parameters for next section of mission
         Then wait until vehicle is armed again
         """
@@ -223,11 +270,14 @@ class Main():
         wait()
 
         self.state_manager.change_state(StateList.TAKE_OFF_TWO)
-        return True
 
 
     @target_loop
     def take_off_two(self) -> bool:
+        """
+        MISSION_STAGE
+        """
+
         # upload the new mission
         m = self.mission_manager.load_waypoints("./optional_mission.waypoints")
         self.mission_manager.command(m)
@@ -237,6 +287,9 @@ class Main():
 
 
     def speed_trial(self) -> bool:
+        """
+        MISSION_STAGE
+        """
         # set up speed trail waypoints and start waypoints
 
         self.camera.start()
@@ -300,34 +353,27 @@ class Main():
 
     @target_loop
     def land_two(self) -> bool:
-        """ SKIPPED """
+        """ 
+        MISSION_STAGE 
+        """
+
+        while self.mission_manager.vehicle.armed == True:            
+            time.sleep(1)
+            logger.info("waiting for landing, currently armed")
+
         self.state_manager.change_state(StateList.END)
         return True
 
 
-    def end(self) -> bool:
+    def end(self):
+        """
+        MISSION_STAGE
+        """
+
         logger.info("this is the end, hold your breath and count to ten")
         self.mission_manager.vehicle.close()
         
         # print the mission summary
         logger.info(self)
         return True
-
-
-    def run(self):
-        """ start the mission routine """
-
-        logger.info("warmed up, engaging improbability drive")
-
-        try:
-            while True:
-                logger.info(f"running {self.state_manager.state}")
-                self.states[self.state_manager.state]()
-        except KeyboardInterrupt:
-            self.end()
-        except:
-            # a bruh moment for sure
-            self.mission_manager.vehicle.simple_goto(self.mission_manager.vehicle.home_location)
-            logger.critical("main loop crashed, exiting")
-            raise Exception("balls")
     
