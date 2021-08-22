@@ -34,6 +34,13 @@ if code does something that doesn't contribute to the following, then it is usel
     f) End mission based on time & battery
     g) Dynamic glide landing approach based on wind?
 
+3. Clean Code
+    a) Split work stages into functions or files
+    b) Use type hints for function parameters and return values
+    c) Use doc strings for every function even if it seems obvious
+    d) All components (files) should have automatic tests
+
+
 
 
 ## 1. tools & workflow

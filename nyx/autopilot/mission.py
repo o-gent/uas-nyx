@@ -362,10 +362,10 @@ class Mission():
 
             cmd = dronekit.Command(
                 0, 0, 0, 
-                int(waypoint_dict.get("coord_frame")), int(waypoint_dict.get("command")), 
-                0, 0, 
-                float(waypoint_dict.get("param1")), float(waypoint_dict.get("param2")), float(waypoint_dict.get("param3")), float(waypoint_dict.get("param4")),
-                float(waypoint_dict.get("lat")), float(waypoint_dict.get("long")), float(waypoint_dict.get("alt"))
+                int(waypoint_dict["coord_frame"]), int(waypoint_dict["command"]),
+                0, 0,
+                float(waypoint_dict["param1"]), float(waypoint_dict["param2"]), float(waypoint_dict["param3"]), float(waypoint_dict["param4"]),
+                float(waypoint_dict["lat"]), float(waypoint_dict["long"]), float(waypoint_dict["alt"])
             )
             waypoint_list.append(cmd) # Appends list with dicts
         file.close()
