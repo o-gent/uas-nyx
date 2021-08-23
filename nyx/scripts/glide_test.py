@@ -1,10 +1,11 @@
-import sys
 import time
-sys.path.append("../")
 
-from nyx import mission
+from nyx.autopilot import mission
+from nyx.config import load_mission_parameters
 
-mission_manager = mission.Mission(True)
+config = load_mission_parameters()
+
+mission_manager = mission.Mission(True,config)
 
 parameter_setter = mission_manager.parameters_set(mission_manager.config.get("START_PARAMETERS"))
 setting_parameters = False

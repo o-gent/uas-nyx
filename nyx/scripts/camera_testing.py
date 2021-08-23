@@ -1,14 +1,10 @@
-import sys
-
-sys.path.append("../")
-
 import time
 import importlib
 import os
 
 import cv2
 
-from nyx import camera
+from nyx.recognition import camera
 from nyx.utils import logger
 
 

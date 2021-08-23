@@ -1,12 +1,12 @@
 from typing import List
-from nyx import target_recognition
-from nyx.k_nearest_recognition import ocr
+from nyx.recognition import target_recognition
+from nyx.recognition.k_nearest_recognition import ocr
 from nyx.utils import display, logger
 import os
 import cv2
 import time
 from cv2 import dnn_superres
-import nyx.nn_ocr
+from nyx.recognition import nn_ocr
 
 dataset = r"D:\targets"
 
@@ -62,9 +62,9 @@ for result in results_filtered:
     t = str(time.time()).split(".")[0] + "-" + str(time.time()).split(".")[1]
     cv2.imwrite(time.strftime(f"targets/%m-%d-%H-%M-%S-{t}.jpg"),new_im)
 
-import nyx.nn_ocr as ocr
-opts = ocr.Opts(image_folder="./targets", saved_model="TPS-ResNet-BiLSTM-Attn.pth")
-ocr.ocr(opts)
+
+opts = nn_ocr.Opts(image_folder="./targets", saved_model="TPS-ResNet-BiLSTM-Attn.pth")
+nn_ocr.ocr(opts)
 
 # # ocr
 # opts = nn.Opts(

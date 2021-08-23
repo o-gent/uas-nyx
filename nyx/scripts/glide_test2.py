@@ -1,13 +1,15 @@
-from nyx import mission
+from nyx import config
+from nyx.autopilot import mission
+from nyx.utils import logger
+from nyx.config import load_mission_parameters
 import time
 
-
-mission_manager = mission.Mission(True)
+mission_manager = mission.Mission(True, load_mission_parameters())
 
 
 input("press enter to drop payload")
 
-self.mission_manager.release_payload()
+mission_manager.release_payload()
 
 input("press enter to attempt glide")
 
