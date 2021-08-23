@@ -5,6 +5,11 @@
 
 See nyx/main.py for the entry point into the program. I'm also trying to document module files within nyx/README.md
 
+to run:
+```bash
+python -m nyx
+```
+
 I've tried to write some useful things below, I'd read them, it may save you some pain.
 
 
