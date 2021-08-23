@@ -25,3 +25,4 @@ log_demo_result.txt
 ESPCN_x4.pb
 TPS-ResNet-BiLSTM-Attn.pth
 .venv
+result
