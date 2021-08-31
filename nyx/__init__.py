@@ -1,1 +1,1 @@
-from nyx.main import Main
+from nyx.autopilot.main import Main
