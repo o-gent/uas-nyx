@@ -5,13 +5,13 @@ import cv2
 from dronekit.atributes import LocationGlobal, LocationGlobalRelative
 from pymavlink import mavutil
 
-from nyx import camera
+from nyx.recognition import camera, target_recognition
 from nyx import config
 from nyx.autopilot import state, mission
 from nyx.autopilot.bomb_computer import drop_point
 from nyx.autopilot.state import StateList
 from nyx.utils import logger, target_loop
-from nyx.autopilot.config import load_mission_parameters
+from nyx.config import load_mission_parameters
 
 
 class Main:

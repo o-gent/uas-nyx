@@ -1,3 +1,7 @@
+[submodule "deeptext"]
+	path = deeptext
+	url = https://github.com/o-gent/deep-text-recognition-benchmark.git
+
 [submodule "dronekit"]
 	path = dronekit
 	url = https://github.com/o-gent/dronekit.git

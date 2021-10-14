@@ -1,4 +1,4 @@
-import nyx.autopilot.main as main
+import nyx.main as main
 import time
 
 

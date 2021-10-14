@@ -1,6 +1,6 @@
 from nyx.autopilot.state import State, StateList
 import time
-from nyx.autopilot.config import load_mission_parameters
+from nyx.config import load_mission_parameters
 
 def test_state():
     """ """

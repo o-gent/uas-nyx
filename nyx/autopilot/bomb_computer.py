@@ -21,6 +21,8 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import array, ndarray
 
+from nyx import utils
+
 
 # constants
 AG = array([0, 0, -9.81]) # m/s

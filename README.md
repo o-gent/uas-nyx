@@ -1,8 +1,7 @@
 # Nyx, UAS Surrey team Peryton 2021-22
 
-Image recognition has been moved to a different repository
 
-**Nyx co-ordinates the mission**
+**Nyx co-ordinates the whole mission and the image recognition**
 
 See nyx/main.py for the entry point into the program. I'm also trying to document module files within nyx/README.md
 

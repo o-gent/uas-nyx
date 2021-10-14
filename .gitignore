@@ -6,6 +6,7 @@ venv
 .ipynb_checkpoints
 .vscode
 inspiration
+logs
 .pytest_cache
 Pipfile
 .pylint.d
@@ -16,10 +17,12 @@ dataset/logs
 pymavlink
 dataset/letter_set/*
 dataset/LOWER.zip
+images
 TPS-ResNet-BiLSTM-Attn-case-sensitive.pth
+targets
 scripts/ocr_testing.py
 log_demo_result.txt
 ESPCN_x4.pb
 TPS-ResNet-BiLSTM-Attn.pth
 .venv
-runtime/logs/*
+result
