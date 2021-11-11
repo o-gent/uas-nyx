@@ -27,17 +27,17 @@ if none of that makes sense have a read -> https://guides.github.com/
 if code does something that doesn't contribute to the following, then it is useless. These objectives could be revised if needed though.
 
 1. Run Image Recognition
-    a) Segment an image to find a target
-    b) Retrieve Colour, Charachter and GPS position from target
+    - a) Segment an image to find a target
+    - b) Retrieve Colour, Charachter and GPS position from target
 
 2. Co-ordinate the flight computer
-    a) Switch from gliding mode / powered mode
-    b) Start/Stop image recognition when required
-    c) Enable mission split?
-    d) increase payload drop accuracy
-    e) Reduce human error in operation (check parameters and list physical checks)
-    f) End mission based on time & battery
-    g) Dynamic glide landing approach based on wind?
+    - a) Switch from gliding mode / powered mode
+    - b) Start/Stop image recognition when required
+    - c) Enable mission split?
+    - d) increase payload drop accuracy
+    - e) Reduce human error in operation (check parameters and list physical checks)
+    - f) End mission based on time & battery
+    - g) Dynamic glide landing approach based on wind?
 
 3. Clean Code
     a) Split work stages into functions or files
