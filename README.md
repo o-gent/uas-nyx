@@ -2,7 +2,7 @@
 
 We won the IMechE UAS challenge 2021. **Nyx is a program dedicated to co-ordinating the whole mission and the image recognition**
 
-![alt text](why_isnt_it_working.jpg)
+![alt text](why_doesnt_it_work.jpg)
 
 Although only partially tested and unfinished - Nyx aimed to control the autopilot to enable more accurate payload drops, switch mission tasks based on various critera, and co-ordinate the glide section of the mission. Nyx aimed to make each launch more repeatable by managing parameters and doing safety checks. Our image recognition was also fairly good - the OCR needed some TLC though.
 
