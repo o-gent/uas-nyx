@@ -1,6 +1,6 @@
 # Nyx, UAS Surrey Team Peryton 2021-22
 
-We won the IMechE UAS challenge 2021. **Nyx is a program dedicated to co-ordinating the whole mission and the image recognition**
+We won the IMechE UAS challenge 2021. **Nyx was our program dedicated to co-ordinating the whole mission and the image recognition**
 
 ![alt text](why_doesnt_it_work.jpg)
 
